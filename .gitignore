@@ -1,22 +1,62 @@
-# If you prefer the allow list template instead of the deny list, see community template:
-# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
-#
 # Binaries for programs and plugins
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
-
-# Test binary, built with `go test -c`
 *.test
-
-# Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# Go modules
+easysplit_server/go/pkg/
+easysplit_server/go/bin/
 
-# Go workspace file
-go.work
-go.work.sum
+# Output of the go coverage tool, specifically when used with LiteIDE
+easysplit_server/*.out
+
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+*.lock
+*.lock.lock
+*.gz
+*.tmp
+*.old
+
+# Visual Studio Code related files
+.vscode/
+.vscode/*
+.history/
+
+# Flutter/Dart related files
+easysplit_client/.dart_tool/
+easysplit_client/.packages
+easysplit_client/.pub/
+easysplit_client/.flutter-plugins
+easysplit_client/.flutter-plugins-dependencies
+easysplit_client/.generated/
+
+# Flutter build outputs
+easysplit_client/build/
+
+# iOS related files
+easysplit_client/ios/.symlinks/
+easysplit_client/ios/Pods/
+easysplit_client/ios/Flutter/flutter_export_environment.sh
+easysplit_client/ios/Flutter/Flutter.podspec
+easysplit_client/ios/Flutter/Generated.xcconfig
+easysplit_client/ios/Runner.xcworkspace/
+
+# Android related files
+easysplit_client/android/.gradle/
+easysplit_client/android/app/build/
+
+# Web related files
+easysplit_client/web/.dart_tool/
+easysplit_client/web/build/
+
+# Ignore .env files
+*.env
