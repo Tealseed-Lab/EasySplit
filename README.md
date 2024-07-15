@@ -1,5 +1,5 @@
 
-<img src="images/logo.png" width="80" />
+<img src="images/icon.png" width="80" />
 
 # Welcome to EasySplit!
 
@@ -7,9 +7,9 @@ Hello and welcome to the EasySplit repository!
 
 **EasySplit** is a mobile application designed to streamline bill splitting among friends. It leverages AI to automatically detect prices from images of bills, providing an intuitive user interface for effortless splitting. The app also generates visually appealing shared bill summaries, detailing costs for each individual.
 
-<img src="images/preview1.png" width="180" /> <img src="images/preview2.png" width="180" /> <img src="images/preview3.png" width="180" />
+<img src="images/preview1.png" width="170" /> <img src="images/preview2.png" width="170" /> <img src="images/preview3.png" width="170" /> <img src="images/preview4.png" width="170" />
 
-Current version on App Store: V1.0.0
+Current version on App Store: V1.1.0
 
 
 ## Get Started
