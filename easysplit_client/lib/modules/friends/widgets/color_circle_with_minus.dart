@@ -1,12 +1,14 @@
+import 'package:easysplit_flutter/common/models/friends/friend.dart';
 import 'package:flutter/material.dart';
 
-import 'person_circle.dart';
+import 'color_circle.dart';
 
-class PersonWithMinus extends StatelessWidget {
-  final int index;
+class ColorCircleWithMinus extends StatelessWidget {
+  final Friend friend;
   final VoidCallback onTap;
 
-  const PersonWithMinus({super.key, required this.index, required this.onTap});
+  const ColorCircleWithMinus(
+      {super.key, required this.friend, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -18,9 +20,10 @@ class PersonWithMinus extends StatelessWidget {
         padding: const EdgeInsets.all(3.0),
         child: Stack(
           children: [
-            PersonCircle(
+            ColorCircle(
               size: 36,
-              index: index,
+              text: friend.name[0],
+              color: friend.color,
               fontSize: 16.0,
             ),
             Positioned(

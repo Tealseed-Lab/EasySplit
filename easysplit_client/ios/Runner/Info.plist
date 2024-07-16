@@ -35,9 +35,9 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>EasySplit requires access to your location to provide personalized services while you are using the app.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>EasySplit requires access to add photos to your photo library.</string>
+	<string>EasySplit requires access to save photos to your photo library.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>EasySplit requires access to the photo library to allow users to select images for bill splitting.</string>
+	<string>EasySplit requires access to the photo library to allow users to save images or select images for bill splitting.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

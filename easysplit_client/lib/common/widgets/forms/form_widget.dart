@@ -64,12 +64,12 @@ class _EditFormWidgetState extends State<EditFormWidget>
       return widget.nameController.text.isNotEmpty &&
           widget.amountController.text.isNotEmpty &&
           price > 0 &&
-          price < 10000;
+          price < 1000000000;
     } else {
       return widget.nameController.text.isNotEmpty &&
           widget.amountController.text.isNotEmpty &&
           price >= 0 &&
-          price < 1000;
+          price < 100000000;
     }
   }
 
@@ -99,7 +99,6 @@ class _EditFormWidgetState extends State<EditFormWidget>
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300),
                 ),
                 child: Row(
                   children: [
@@ -138,6 +137,7 @@ class _EditFormWidgetState extends State<EditFormWidget>
                             color: Colors.black,
                             fontSize: 36,
                             fontWeight: FontWeight.w600),
+                        cursorColor: const Color.fromRGBO(13, 170, 220, 1),
                       ),
                     ),
                   ],
@@ -152,7 +152,6 @@ class _EditFormWidgetState extends State<EditFormWidget>
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade300),
                   ),
                   child: TextField(
                     controller: widget.nameController,
@@ -165,6 +164,7 @@ class _EditFormWidgetState extends State<EditFormWidget>
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.symmetric(horizontal: 16),
                     ),
+                    cursorColor: const Color.fromRGBO(13, 170, 220, 1),
                   ),
                 ),
             ],

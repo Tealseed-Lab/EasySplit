@@ -5,6 +5,7 @@ import 'package:easysplit_flutter/modules/bills/pages/edit_charge_page.dart';
 import 'package:easysplit_flutter/modules/bills/pages/edit_item_page.dart';
 import 'package:easysplit_flutter/modules/bills/pages/share_bill_page.dart';
 import 'package:easysplit_flutter/modules/bills/stores/receipt_store.dart';
+import 'package:easysplit_flutter/modules/friends/pages/friends_page.dart';
 import 'package:easysplit_flutter/modules/images/pages/camera_page.dart';
 import 'package:easysplit_flutter/modules/images/pages/network_error_page.dart';
 import 'package:easysplit_flutter/modules/images/pages/no_text_error_page.dart';
@@ -78,6 +79,7 @@ class App extends StatelessWidget {
           },
         ),
         GoRoute(
+          name: 'createItem',
           path: '/createItem',
           builder: (context, state) {
             final scrollPosition = (state.extra
@@ -119,6 +121,15 @@ class App extends StatelessWidget {
           ),
         ),
         GoRoute(
+          name: 'friends',
+          path: '/friends',
+          builder: (context, state) {
+            final scrollPosition = (state.extra
+                as Map<String, dynamic>)['scrollPosition'] as double?;
+            return FriendsPage(scrollPosition: scrollPosition);
+          },
+        ),
+        GoRoute(
           name: 'shareBill',
           path: '/shareBill',
           pageBuilder: (context, state) => NoTransitionPage(
@@ -150,13 +161,6 @@ class App extends StatelessWidget {
         labelSmall: TextStyle(fontFamily: 'Poppins'),
       ),
       primaryColor: const Color.fromARGB(255, 148, 209, 228),
-      canvasColor: const Color.fromARGB(255, 148, 209, 228),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Color.fromARGB(255, 148, 209, 228),
-      ),
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: Color.fromARGB(255, 148, 209, 228),
-      ),
     );
   }
 }

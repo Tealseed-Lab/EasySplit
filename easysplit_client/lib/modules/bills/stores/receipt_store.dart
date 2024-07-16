@@ -1,6 +1,9 @@
 import 'package:easysplit_flutter/common/services/log_service.dart';
 import 'package:easysplit_flutter/common/utils/constants/constants.dart';
+import 'package:easysplit_flutter/modules/friends/stores/friend_store.dart';
+import 'package:easysplit_flutter/modules/friends/utils/friend_with_bill_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:mobx/mobx.dart';
 
@@ -10,6 +13,8 @@ part 'receipt_store.g.dart';
 class ReceiptStore = ReceiptStoreBase with _$ReceiptStore;
 
 abstract class ReceiptStoreBase with Store {
+  FriendStore get _friendStore => GetIt.instance<FriendStore>();
+
   @observable
   ObservableList<Map<String, dynamic>> items =
       ObservableList<Map<String, dynamic>>();
@@ -27,9 +32,6 @@ abstract class ReceiptStoreBase with Store {
 
   @observable
   num oldTotal = 0.0;
-
-  @observable
-  int pax = 2;
 
   @observable
   ObservableMap<int, ObservableList<int>> itemAssignments =
@@ -59,8 +61,40 @@ abstract class ReceiptStoreBase with Store {
   @computed
   int get sharedByAllCount => items.where((item) {
         int index = items.indexOf(item);
-        return item['price'] != 0 && itemAssignments[index]?.length == pax;
+        return item['price'] != 0 &&
+            itemAssignments[index]?.length == _friendStore.selectedFriendsCount;
       }).length;
+
+  @action
+  void calculateImageDimensions() {
+    double bottomBillHeight = calculateBottomBillHeight();
+    double assigneeHeight = assignedItemsCount * 24 - sharedByAllCount * 2;
+    double itemNamesHeight = calculateItemNamesHeight();
+    double height = bottomBillHeight +
+        BillImageConstants.baseHeight +
+        assigneeHeight +
+        itemNamesHeight;
+    LogService.i(
+        'Bottom Bill Height: $bottomBillHeight; Assignee Height: $assigneeHeight; Item Names Height: $itemNamesHeight; Total Height: $height');
+    setImageDimensions(BillImageConstants.baseWidth, height);
+  }
+
+  double calculateBottomBillHeight() {
+    List<String> friendNames = _friendStore.friends
+        .where((friend) => friend.isSelected)
+        .map((friend) => friend.name)
+        .toList();
+
+    List<String> friendBillAmounts = _friendStore.friends
+        .where((friend) => friend.isSelected)
+        .map((friend) =>
+            '\$${calculatePersonBill(friend.id).toStringAsFixed(2)}')
+        .toList();
+
+    double maxWidth = BillImageConstants.baseWidth - 32; // Considering padding
+
+    return calculateTotalHeight(friendNames, friendBillAmounts, maxWidth);
+  }
 
   double calculateItemNamesHeight() {
     double totalHeight = validItemsCount * 21;
@@ -89,22 +123,6 @@ abstract class ReceiptStoreBase with Store {
       }
     }
     return totalHeight;
-  }
-
-  @action
-  void calculateImageDimensions() {
-    double bottomBillHeight = pax > 4 ? 201 : 95;
-    double assigneeHeight = assignedItemsCount * 24 - sharedByAllCount * 2;
-    double itemNamesHeight = calculateItemNamesHeight();
-    double height = bottomBillHeight +
-        BillImageConstants.baseHeight +
-        assigneeHeight +
-        itemNamesHeight;
-    LogService.i('Bottom Bill Height: $bottomBillHeight; '
-        'Assignee Height: $assigneeHeight; '
-        'Item Names Height: $itemNamesHeight; '
-        'Total Height: $height');
-    setImageDimensions(BillImageConstants.baseWidth, height);
   }
 
   @action
@@ -185,44 +203,26 @@ abstract class ReceiptStoreBase with Store {
   }
 
   @action
-  void increasePax() {
-    if (pax < 8) {
-      pax++;
-      LogService.i('Increased pax to $pax.');
-    }
-  }
-
-  @action
-  void decreasePax() {
-    if (pax > 2) {
-      if (itemAssignments.values.any((assignees) => assignees.contains(pax))) {
-        items.asMap().forEach((itemIndex, _) {
-          removePersonFromItem(itemIndex, pax);
-        });
-      }
-      pax--;
-      LogService.i('Decreased pax to $pax.');
-    }
-  }
-
-  @action
-  void assignPersonToItem(int itemIndex, int personIndex) {
+  void assignPersonToItem(int itemIndex, int personId) {
     itemAssignments.putIfAbsent(itemIndex, () => ObservableList<int>());
-    if (!itemAssignments[itemIndex]!.contains(personIndex)) {
-      itemAssignments[itemIndex]!.add(personIndex);
+    if (!itemAssignments[itemIndex]!.contains(personId)) {
+      itemAssignments[itemIndex]!.add(personId);
     }
-    itemAssignments[itemIndex]!.sort();
+    itemAssignments[itemIndex]!.sort((a, b) => b.compareTo(a));
   }
 
   @action
-  void removePersonFromItem(int itemIndex, int personIndex) {
-    itemAssignments[itemIndex]?.remove(personIndex);
+  void removePersonFromItem(int itemIndex, int personId) {
+    itemAssignments[itemIndex]?.remove(personId);
   }
 
   @action
   void assignAllPeopleToItem(int itemIndex) {
-    itemAssignments[itemIndex] =
-        ObservableList<int>.of(List<int>.generate(pax, (i) => i + 1));
+    final selectedFriendsIds = _friendStore.friends
+        .where((friend) => friend.isSelected)
+        .map((friend) => friend.id)
+        .toList();
+    itemAssignments[itemIndex] = ObservableList<int>.of(selectedFriendsIds);
   }
 
   @action
@@ -231,12 +231,12 @@ abstract class ReceiptStoreBase with Store {
   }
 
   @action
-  num calculatePersonBill(int personIndex) {
+  num calculatePersonBill(int personId) {
     num personTotal = 0.0;
 
     for (int itemIndex = 0; itemIndex < items.length; itemIndex++) {
       if (itemAssignments.containsKey(itemIndex) &&
-          itemAssignments[itemIndex]!.contains(personIndex)) {
+          itemAssignments[itemIndex]!.contains(personId)) {
         final assignees = itemAssignments[itemIndex]!.length;
         final itemPrice = items[itemIndex]['price'];
         final itemTotal = itemPrice + _getChargesDiscountsForItem(itemPrice);
@@ -262,5 +262,17 @@ abstract class ReceiptStoreBase with Store {
         0.0, (sum, discount) => sum + discount['amount']);
     return (totalCharges + totalDiscounts) *
         (itemPrice / (total - totalCharges - totalDiscounts));
+  }
+
+  @action
+  void cleanupItemAssignments() {
+    final selectedFriendsIds = _friendStore.friends
+        .where((friend) => friend.isSelected)
+        .map((friend) => friend.id)
+        .toList();
+
+    itemAssignments.forEach((itemIndex, assignees) {
+      assignees.removeWhere((id) => !selectedFriendsIds.contains(id));
+    });
   }
 }

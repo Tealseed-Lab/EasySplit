@@ -1,15 +1,19 @@
 import 'package:easysplit_flutter/common/utils/constants/constants.dart';
 import 'package:easysplit_flutter/di/locator.dart';
 import 'package:easysplit_flutter/modules/bills/stores/receipt_store.dart';
-import 'package:easysplit_flutter/modules/bills/widgets/person_bill.dart';
-import 'package:easysplit_flutter/modules/bills/widgets/person_circle.dart';
+import 'package:easysplit_flutter/modules/friends/stores/friend_store.dart';
+import 'package:easysplit_flutter/modules/friends/utils/friend_with_bill_utils.dart';
+import 'package:easysplit_flutter/modules/friends/widgets/color_circle.dart';
+import 'package:easysplit_flutter/modules/friends/widgets/friend_with_bill.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class BillImage extends StatelessWidget {
   BillImage({super.key});
 
   final ReceiptStore receiptStore = locator<ReceiptStore>();
+  final FriendStore friendStore = locator<FriendStore>();
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +24,7 @@ class BillImage extends StatelessWidget {
 
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -30,19 +34,23 @@ class BillImage extends StatelessWidget {
               style: TextStyle(
                 color: Colors.black,
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
           Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: SvgPicture.asset('assets/svg/bill_divider1.svg')),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: SvgPicture.asset('assets/svg/bill_divider1.svg'),
+          ),
           ...receiptStore.items
               .where((item) => item['price'] != 0)
               .map<Widget>((item) {
             int index = receiptStore.items.indexOf(item);
             final noAssignee = receiptStore.itemAssignments[index] == null ||
                 receiptStore.itemAssignments[index]!.isEmpty;
+            final allSelectedFriendsAssigned =
+                receiptStore.itemAssignments[index]?.length ==
+                    friendStore.selectedFriendsCount;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -51,71 +59,76 @@ class BillImage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     SizedBox(
-                        width: BillImageConstants.itemTextWidth,
-                        child: RichText(
-                            maxLines: 2,
+                      width: BillImageConstants.itemTextWidth,
+                      child: RichText(
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        text: TextSpan(
+                          text: item['name'],
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.normal,
+                            height: BillImageConstants.itemLineHeight / 16,
+                            color: noAssignee
+                                ? BillImageConstants.unassignedItemColor
+                                : Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Flexible(
+                      child: SizedBox(
+                        width: BillImageConstants.itemAmountWidth,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            '\$${item['price'].toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: noAssignee
+                                  ? BillImageConstants.unassignedItemColor
+                                  : Colors.black,
+                            ),
+                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            text: TextSpan(
-                              text: item['name'],
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.normal,
-                                height: BillImageConstants.itemLineHeight / 16,
-                                color: noAssignee
-                                    ? BillImageConstants.unassignedItemColor
-                                    : Colors.black,
-                              ),
-                            ))),
-                    Text(
-                      '\$${item['price'].toStringAsFixed(2)}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: noAssignee
-                            ? BillImageConstants.unassignedItemColor
-                            : Colors.black,
+                          ),
+                        ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 4),
-                Column(
-                  children: <Widget>[
-                    if ((receiptStore
-                                .itemAssignments[
-                                    receiptStore.items.indexOf(item)]
-                                ?.length ??
-                            0) ==
-                        receiptStore.pax)
-                      SizedBox(
-                          height: 22,
-                          child: Text(
-                            BillImageConstants.shareByAllText,
-                            style: TextStyle(
-                              color: Theme.of(context).primaryColor,
-                              fontSize: 16,
-                              fontWeight: FontWeight.normal,
-                            ),
-                          ))
-                    else
-                      Row(
-                        children: receiptStore.itemAssignments[
-                                    receiptStore.items.indexOf(item)]
-                                ?.map<Widget>((personIndex) {
-                              return Container(
-                                  height: 24,
-                                  padding: const EdgeInsets.only(right: 6.0),
-                                  child: PersonCircle(
-                                    size: 24,
-                                    index: personIndex,
-                                    fontSize: 12.0,
-                                  ));
-                            }).toList() ??
-                            [],
+                if (allSelectedFriendsAssigned)
+                  const SizedBox(
+                    height: 22,
+                    child: Text(
+                      BillImageConstants.shareByAllText,
+                      style: TextStyle(
+                        color: Color.fromRGBO(13, 170, 220, 1),
+                        fontSize: 16,
+                        fontWeight: FontWeight.normal,
                       ),
-                    const SizedBox(height: 16),
-                  ],
-                )
+                    ),
+                  )
+                else
+                  Row(
+                    children: receiptStore.itemAssignments[index]
+                            ?.map<Widget>((friendId) {
+                          final friend = friendStore.getFriendById(friendId);
+                          return Container(
+                              height: 24,
+                              padding: const EdgeInsets.only(right: 6.0),
+                              child: ColorCircle(
+                                size: 24,
+                                text: friend?.name[0] ?? '',
+                                color: friend?.color ?? Colors.grey,
+                                fontSize: 12.0,
+                              ));
+                        }).toList() ??
+                        [],
+                  ),
+                const SizedBox(height: 16),
               ],
             );
           }),
@@ -169,26 +182,40 @@ class BillImage extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           SvgPicture.asset('assets/svg/bill_divider1.svg'),
-          GridView.count(
-            padding: const EdgeInsets.only(top: 18.0),
-            crossAxisCount: 4,
-            crossAxisSpacing: 16.0,
-            childAspectRatio: 0.7,
-            physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            children: List.generate(receiptStore.pax, (index) {
-              return Column(
-                children: [
-                  PersonCircle(
-                    size: 69,
-                    index: index + 1,
-                    fontSize: 32.0,
-                  ),
-                  const SizedBox(height: 4),
-                  PersonBill(personIndex: index + 1, billColor: Colors.black),
-                ],
-              );
-            }),
+          const SizedBox(height: 16),
+          Expanded(
+            child: Observer(
+              builder: (_) {
+                const space = 8.0;
+                final selectedFriends = friendStore.friends
+                    .where((friend) => friend.isSelected)
+                    .toList();
+                return Wrap(
+                  spacing: space,
+                  runSpacing: space,
+                  children: [
+                    for (var friend in selectedFriends)
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final maxWidth = constraints.maxWidth;
+                          final minWidth = (maxWidth - space) / 2;
+                          final billAmount =
+                              '\$${receiptStore.calculatePersonBill(friend.id).toStringAsFixed(2)}';
+                          final widgetWidth = calculateWidgetWidth(
+                              friend.name, billAmount, maxWidth, minWidth);
+
+                          return SizedBox(
+                            width: widgetWidth,
+                            child: FriendWithBill(
+                                friend: friend,
+                                backgroundColor: Colors.transparent),
+                          );
+                        },
+                      ),
+                  ],
+                );
+              },
+            ),
           ),
         ],
       ),

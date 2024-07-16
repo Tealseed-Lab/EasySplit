@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 // BillImage Constants
 class BillImageConstants {
   static const double baseWidth = 393;
-  static const double baseHeight = 260;
+  static const double baseHeight = 250;
   static const double itemLineHeight = 22;
-  static const double itemTextWidth = 260;
+  static const double itemTextWidth = 200;
+  static const double itemAmountWidth = 150;
   static const String shareByAllText = 'Shared by all';
   static const Color unassignedItemColor = Color.fromRGBO(255, 72, 70, 1);
   static const Color additionalChargesColor = Color.fromRGBO(60, 60, 67, 0.60);
@@ -56,6 +57,9 @@ const String shareLogsTitle = "Share Logs";
 const String shareLogsMessage = "Do you want to share the logs?";
 const String shareLogsSubject = "Logs";
 const String shareLogsText = "Here are the logs.";
+const String maximumSelectedFriendsToast =
+    "You can select a maximum of 8 people";
+const String maximumFriendsToast = "You can add a maximum of 20 people";
 
 // Processing Texts
 final List<String> processingTexts = [
@@ -64,4 +68,28 @@ final List<String> processingTexts = [
   "Analysing price ",
   "Calculating amounts ",
   "Generalizing results ",
+];
+
+// Friends Color List
+final firendColorList = [
+  const Color(0xFFFDD91F),
+  const Color(0xFFFB7472),
+  const Color(0xFFFFA5AE),
+  const Color(0xFF01BDA4),
+  const Color(0xFFB38CFF),
+  const Color(0xFFB3EA31),
+  const Color(0xFFFCA952),
+  const Color(0xFF8B99A6),
+  const Color(0xFF53A6C4),
+  const Color(0xFF5E69F6),
+  const Color(0xFF3BCEF9),
+  const Color(0xFF239DFF),
+  const Color(0xFF86E0D6),
+  const Color(0xFF7BC242),
+  const Color(0xFF474E60),
+  const Color(0xFFDBC4A1),
+  const Color(0xFFCF7600),
+  const Color(0xFFAF2026),
+  const Color(0xFFFF5FC9),
+  const Color(0xFFBAB9EA),
 ];

@@ -111,21 +111,6 @@ mixin _$ReceiptStore on ReceiptStoreBase, Store {
     });
   }
 
-  late final _$paxAtom = Atom(name: 'ReceiptStoreBase.pax', context: context);
-
-  @override
-  int get pax {
-    _$paxAtom.reportRead();
-    return super.pax;
-  }
-
-  @override
-  set pax(int value) {
-    _$paxAtom.reportWrite(value, super.pax, () {
-      super.pax = value;
-    });
-  }
-
   late final _$itemAssignmentsAtom =
       Atom(name: 'ReceiptStoreBase.itemAssignments', context: context);
 
@@ -304,44 +289,22 @@ mixin _$ReceiptStore on ReceiptStoreBase, Store {
   }
 
   @override
-  void increasePax() {
-    final _$actionInfo = _$ReceiptStoreBaseActionController.startAction(
-        name: 'ReceiptStoreBase.increasePax');
-    try {
-      return super.increasePax();
-    } finally {
-      _$ReceiptStoreBaseActionController.endAction(_$actionInfo);
-    }
-  }
-
-  @override
-  void decreasePax() {
-    final _$actionInfo = _$ReceiptStoreBaseActionController.startAction(
-        name: 'ReceiptStoreBase.decreasePax');
-    try {
-      return super.decreasePax();
-    } finally {
-      _$ReceiptStoreBaseActionController.endAction(_$actionInfo);
-    }
-  }
-
-  @override
-  void assignPersonToItem(int itemIndex, int personIndex) {
+  void assignPersonToItem(int itemIndex, int personId) {
     final _$actionInfo = _$ReceiptStoreBaseActionController.startAction(
         name: 'ReceiptStoreBase.assignPersonToItem');
     try {
-      return super.assignPersonToItem(itemIndex, personIndex);
+      return super.assignPersonToItem(itemIndex, personId);
     } finally {
       _$ReceiptStoreBaseActionController.endAction(_$actionInfo);
     }
   }
 
   @override
-  void removePersonFromItem(int itemIndex, int personIndex) {
+  void removePersonFromItem(int itemIndex, int personId) {
     final _$actionInfo = _$ReceiptStoreBaseActionController.startAction(
         name: 'ReceiptStoreBase.removePersonFromItem');
     try {
-      return super.removePersonFromItem(itemIndex, personIndex);
+      return super.removePersonFromItem(itemIndex, personId);
     } finally {
       _$ReceiptStoreBaseActionController.endAction(_$actionInfo);
     }
@@ -370,11 +333,11 @@ mixin _$ReceiptStore on ReceiptStoreBase, Store {
   }
 
   @override
-  num calculatePersonBill(int personIndex) {
+  num calculatePersonBill(int personId) {
     final _$actionInfo = _$ReceiptStoreBaseActionController.startAction(
         name: 'ReceiptStoreBase.calculatePersonBill');
     try {
-      return super.calculatePersonBill(personIndex);
+      return super.calculatePersonBill(personId);
     } finally {
       _$ReceiptStoreBaseActionController.endAction(_$actionInfo);
     }
@@ -392,6 +355,17 @@ mixin _$ReceiptStore on ReceiptStoreBase, Store {
   }
 
   @override
+  void cleanupItemAssignments() {
+    final _$actionInfo = _$ReceiptStoreBaseActionController.startAction(
+        name: 'ReceiptStoreBase.cleanupItemAssignments');
+    try {
+      return super.cleanupItemAssignments();
+    } finally {
+      _$ReceiptStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   String toString() {
     return '''
 items: ${items},
@@ -399,7 +373,6 @@ additionalCharges: ${additionalCharges},
 additionalDiscounts: ${additionalDiscounts},
 total: ${total},
 oldTotal: ${oldTotal},
-pax: ${pax},
 itemAssignments: ${itemAssignments},
 imageWidth: ${imageWidth},
 imageHeight: ${imageHeight},

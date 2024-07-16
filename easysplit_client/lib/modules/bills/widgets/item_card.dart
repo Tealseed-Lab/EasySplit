@@ -1,10 +1,10 @@
 import 'package:easysplit_flutter/common/utils/constants/constants.dart';
 import 'package:easysplit_flutter/di/locator.dart';
 import 'package:easysplit_flutter/modules/bills/stores/receipt_store.dart';
+import 'package:easysplit_flutter/modules/friends/stores/friend_store.dart';
+import 'package:easysplit_flutter/modules/friends/widgets/color_circle_with_minus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-
-import 'person_with_minus.dart';
 
 class ItemCard extends StatelessWidget {
   final Map<String, dynamic> item;
@@ -12,10 +12,12 @@ class ItemCard extends StatelessWidget {
   ItemCard({super.key, required this.item});
 
   final _receiptStore = locator<ReceiptStore>();
+  final _friendStore = locator<FriendStore>();
 
   @override
   Widget build(BuildContext context) {
     final itemIndex = _receiptStore.items.indexOf(item);
+    _receiptStore.cleanupItemAssignments();
 
     return Observer(
       builder: (_) => Container(
@@ -61,45 +63,57 @@ class ItemCard extends StatelessWidget {
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Checkbox(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(5.0),
+                        GestureDetector(
+                          onTap: () {
+                            bool? newValue = _receiptStore
+                                    .itemAssignments[itemIndex]?.length !=
+                                _friendStore.selectedFriendsCount;
+                            if (newValue == true) {
+                              _receiptStore.assignAllPeopleToItem(itemIndex);
+                            } else {
+                              _receiptStore.clearAssignmentsFromItem(itemIndex);
+                            }
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Checkbox(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(5.0),
+                                ),
+                                side: const BorderSide(
+                                  color: Colors.transparent,
+                                  width: 1.0,
+                                ),
+                                value: _receiptStore
+                                        .itemAssignments[itemIndex]?.length ==
+                                    _friendStore.selectedFriendsCount,
+                                onChanged: (bool? value) {
+                                  if (value == true) {
+                                    _receiptStore
+                                        .assignAllPeopleToItem(itemIndex);
+                                  } else {
+                                    _receiptStore
+                                        .clearAssignmentsFromItem(itemIndex);
+                                  }
+                                },
+                                fillColor:
+                                    WidgetStateProperty.resolveWith((states) {
+                                  if (states.contains(WidgetState.selected)) {
+                                    return Theme.of(context).primaryColor;
+                                  }
+                                  return const Color(0xFFF4F4F4);
+                                }),
                               ),
-                              side: const BorderSide(
-                                color: Colors.transparent,
-                                width: 1.0,
+                              Text(
+                                byAllText,
+                                style: TextStyle(
+                                  color: Theme.of(context).primaryColor,
+                                  fontSize: 16.0,
+                                ),
                               ),
-                              value: _receiptStore
-                                      .itemAssignments[itemIndex]?.length ==
-                                  _receiptStore.pax,
-                              onChanged: (bool? value) {
-                                if (value == true) {
-                                  _receiptStore
-                                      .assignAllPeopleToItem(itemIndex);
-                                } else {
-                                  _receiptStore
-                                      .clearAssignmentsFromItem(itemIndex);
-                                }
-                              },
-                              fillColor:
-                                  WidgetStateProperty.resolveWith((states) {
-                                if (states.contains(WidgetState.selected)) {
-                                  return Theme.of(context).primaryColor;
-                                }
-                                return const Color(0xFFF4F4F4);
-                              }),
-                            ),
-                            Text(
-                              byAllText,
-                              style: TextStyle(
-                                color: Theme.of(context).primaryColor,
-                                fontSize: 16.0,
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -127,11 +141,13 @@ class ItemCard extends StatelessWidget {
                                 )),
                           ]
                         : _receiptStore.itemAssignments[itemIndex]
-                                ?.map((personIndex) {
-                              return PersonWithMinus(
-                                index: personIndex,
+                                ?.map((personId) {
+                              final friend =
+                                  _friendStore.getFriendById(personId);
+                              return ColorCircleWithMinus(
+                                friend: friend!,
                                 onTap: () => _receiptStore.removePersonFromItem(
-                                    itemIndex, personIndex),
+                                    itemIndex, personId),
                               );
                             }).toList() ??
                             [],

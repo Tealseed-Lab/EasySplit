@@ -7,8 +7,11 @@ import 'package:easysplit_flutter/modules/bills/widgets/add_item_placeholder.dar
 import 'package:easysplit_flutter/modules/bills/widgets/animated_total.dart';
 import 'package:easysplit_flutter/modules/bills/widgets/charges.dart';
 import 'package:easysplit_flutter/modules/bills/widgets/item_card.dart';
-import 'package:easysplit_flutter/modules/bills/widgets/person_bill.dart';
-import 'package:easysplit_flutter/modules/bills/widgets/person_circle.dart';
+import 'package:easysplit_flutter/modules/friends/stores/friend_store.dart';
+import 'package:easysplit_flutter/modules/friends/utils/friend_with_bill_utils.dart';
+import 'package:easysplit_flutter/modules/friends/widgets/color_circle.dart';
+import 'package:easysplit_flutter/modules/friends/widgets/friend_with_bill.dart';
+import 'package:easysplit_flutter/modules/friends/widgets/pax.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:go_router/go_router.dart';
@@ -27,6 +30,8 @@ class BillPage extends StatefulWidget {
 
 class _BillPageState extends State<BillPage> {
   final _receiptStore = locator<ReceiptStore>();
+  final _friendStore = locator<FriendStore>();
+
   late ReactionDisposer _receiptDisposer;
   late ReactionDisposer _itemAssignmentsDisposer;
   final ScrollController _scrollController = ScrollController();
@@ -52,6 +57,8 @@ class _BillPageState extends State<BillPage> {
           setState(() {});
         },
       );
+
+      _friendStore.loadFriends();
     });
   }
 
@@ -80,6 +87,14 @@ class _BillPageState extends State<BillPage> {
     context.go(
       '/createItem',
       extra: {'receiptStore': _receiptStore, 'scrollPosition': scrollPosition},
+    );
+  }
+
+  void _navigateToFriendsPage(BuildContext context) {
+    final scrollPosition = _scrollController.position.pixels;
+    context.go(
+      '/friends',
+      extra: {'scrollPosition': scrollPosition},
     );
   }
 
@@ -168,129 +183,88 @@ class _BillPageState extends State<BillPage> {
                 child: Charges(),
               ),
               const SizedBox(height: 20),
-              Container(
+              Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  children: [
-                    Observer(
-                      builder: (_) => Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: AnimatedTotal(receiptStore: _receiptStore),
-                          ),
-                          Row(
-                            children: [
-                              Text(
-                                'Pax:',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.white.withOpacity(0.5),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              InkWell(
-                                onTap: _receiptStore.pax > 2
-                                    ? () => _receiptStore.decreasePax()
-                                    : null,
-                                child: Container(
-                                  width: 24,
-                                  height: 24,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.5),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Center(
-                                    child: Transform.translate(
-                                      offset: const Offset(0, -3),
-                                      child: const Text(
-                                        "-",
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 22,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Text(
-                                '${_receiptStore.pax}',
-                                style: const TextStyle(
-                                    fontSize: 28,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600),
-                              ),
-                              const SizedBox(width: 16),
-                              InkWell(
-                                onTap: _receiptStore.pax < 8
-                                    ? () => _receiptStore.increasePax()
-                                    : null,
-                                child: Container(
-                                  width: 24,
-                                  height: 24,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.5),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Center(
-                                    child: Transform.translate(
-                                      offset: const Offset(0, -3),
-                                      child: const Text(
-                                        "+",
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 22,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                child: Observer(
+                  builder: (_) => Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: AnimatedTotal(receiptStore: _receiptStore),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      height: 140,
-                      width: MediaQuery.of(context).size.width,
-                      child: Observer(
-                        builder: (_) => GridView.count(
-                          physics: const NeverScrollableScrollPhysics(),
-                          crossAxisCount: 4,
-                          crossAxisSpacing:
-                              MediaQuery.of(context).size.width / 3 - 120,
-                          childAspectRatio: 0.7,
-                          padding: EdgeInsets.zero,
-                          children: List.generate(_receiptStore.pax, (index) {
-                            return Column(
-                              children: [
-                                Draggable<int>(
-                                  data: index + 1,
-                                  feedback: PersonCircle(
-                                    size: 69,
-                                    index: index + 1,
-                                    fontSize: 32.0,
-                                  ),
-                                  child: PersonCircle(
-                                    size: 69,
-                                    index: index + 1,
-                                    fontSize: 32.0,
-                                  ),
-                                ),
-                                const SizedBox(height: 4.0),
-                                PersonBill(personIndex: index + 1),
-                              ],
-                            );
-                          }),
+                      Pax(onTap: () => _navigateToFriendsPage(context)),
+                    ],
+                  ),
+                ),
+              ),
+              Observer(
+                builder: (_) {
+                  if (_friendStore.friends
+                      .where((friend) => friend.isSelected)
+                      .toList()
+                      .isEmpty) {
+                    return Align(
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        height: 153,
+                        width: 269,
+                        padding: const EdgeInsets.only(right: 16.0),
+                        child: Image.asset('assets/png/guide.png'),
+                      ),
+                    );
+                  } else {
+                    return Container();
+                  }
+                },
+              ),
+              const SizedBox(height: 24),
+              Expanded(
+                child: Observer(
+                  builder: (_) {
+                    const space = 8.0;
+                    final selectedFriends = _friendStore.friends
+                        .where((friend) => friend.isSelected)
+                        .toList();
+                    return SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Wrap(
+                          spacing: space,
+                          runSpacing: space,
+                          children: [
+                            for (var friend in selectedFriends)
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final maxWidth = constraints.maxWidth;
+                                  final minWidth = (maxWidth - space) / 2;
+                                  final billAmount =
+                                      '\$${_receiptStore.calculatePersonBill(friend.id).toStringAsFixed(2)}';
+                                  final widgetWidth = calculateWidgetWidth(
+                                      friend.name,
+                                      billAmount,
+                                      maxWidth,
+                                      minWidth);
+
+                                  return SizedBox(
+                                    width: widgetWidth,
+                                    child: Draggable<int>(
+                                      data: friend.id,
+                                      feedback: ColorCircle(
+                                        size: 69,
+                                        text: friend.name[0],
+                                        color: friend.color,
+                                        fontSize: 32.0,
+                                      ),
+                                      child: FriendWithBill(friend: friend),
+                                    ),
+                                  );
+                                },
+                              ),
+                          ],
                         ),
                       ),
-                    )
-                  ],
+                    );
+                  },
                 ),
               ),
             ],

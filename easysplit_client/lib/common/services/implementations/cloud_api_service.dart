@@ -47,9 +47,10 @@ class CloudApiService extends ApiService {
       final response = await http.Response.fromStream(streamedResponse);
 
       final endTime = DateTime.now();
+      final duration = endTime.difference(startTime);
 
       LogService.i(
-          'Request [$method] $url, requestId: $requestId, sessionId: $sessionId, statusCode: ${response.statusCode}, requestBody: null, responseBody: ${response.body}, startTime: ${startTime.toIso8601String()}, endTime: ${endTime.toIso8601String()}, duration: ${endTime.difference(startTime).inMilliseconds}');
+          'Request [$method] $url, requestId: $requestId, sessionId: $sessionId, statusCode: ${response.statusCode}, requestBody: null, responseBody: ${response.body}, startTime: ${startTime.toIso8601String()}, endTime: ${endTime.toIso8601String()}, duration: ${duration.inSeconds}s');
 
       final Map<String, dynamic> responseJson = json.decode(response.body);
 

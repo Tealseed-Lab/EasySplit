@@ -13,12 +13,12 @@ void main() {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-    await configureDependencies();
     await LogService.init();
+    await configureDependencies();
 
     LogService.i('Starting the app.');
     runApp(App());
   }, (error, stack) {
-    LogService.e(error.toString());
+    LogService.e('Unhandled error: $error', stackTrace: stack);
   });
 }

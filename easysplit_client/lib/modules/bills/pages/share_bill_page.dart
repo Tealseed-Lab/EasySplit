@@ -63,10 +63,7 @@ class _ShareBillPageState extends State<ShareBillPage> {
         receiptStore.showImageSaved();
         LogService.i('Image saved to gallery');
       } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to save image to gallery')),
-        );
-        LogService.e('Failed to save image');
+        LogService.e('Failed to save image, assetEntity is null');
       }
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
