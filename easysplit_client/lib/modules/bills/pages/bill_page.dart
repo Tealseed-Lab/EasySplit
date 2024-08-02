@@ -1,3 +1,5 @@
+import 'package:easysplit_flutter/common/repositories/interfaces/guide_repository.dart';
+import 'package:easysplit_flutter/common/stores/guide_store.dart';
 import 'package:easysplit_flutter/common/utils/constants/constants.dart';
 import 'package:easysplit_flutter/common/widgets/buttons/circular_icon_button.dart';
 import 'package:easysplit_flutter/common/widgets/buttons/navigation_button.dart';
@@ -9,11 +11,11 @@ import 'package:easysplit_flutter/modules/bills/widgets/charges.dart';
 import 'package:easysplit_flutter/modules/bills/widgets/item_card.dart';
 import 'package:easysplit_flutter/modules/friends/stores/friend_store.dart';
 import 'package:easysplit_flutter/modules/friends/utils/friend_with_bill_utils.dart';
-import 'package:easysplit_flutter/modules/friends/widgets/color_circle.dart';
 import 'package:easysplit_flutter/modules/friends/widgets/friend_with_bill.dart';
 import 'package:easysplit_flutter/modules/friends/widgets/pax.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobx/mobx.dart';
 
@@ -29,8 +31,10 @@ class BillPage extends StatefulWidget {
 }
 
 class _BillPageState extends State<BillPage> {
-  final _receiptStore = locator<ReceiptStore>();
-  final _friendStore = locator<FriendStore>();
+  final GuideStore _guideStore = locator<GuideStore>();
+
+  final ReceiptStore _receiptStore = locator<ReceiptStore>();
+  final FriendStore _friendStore = locator<FriendStore>();
 
   late ReactionDisposer _receiptDisposer;
   late ReactionDisposer _itemAssignmentsDisposer;
@@ -101,175 +105,225 @@ class _BillPageState extends State<BillPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        color: Theme.of(context).primaryColor,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    NavigationButton(
-                      pageName: 'camera',
-                      confirmMessage: _receiptStore.itemAssignments.isNotEmpty
-                          ? clearConstantMessage
-                          : null,
+      body: Stack(
+        children: [
+          Container(
+            color: Theme.of(context).primaryColor,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        NavigationButton(
+                          pageName: 'home',
+                          confirmMessage:
+                              _receiptStore.itemAssignments.isNotEmpty
+                                  ? clearContentMessage
+                                  : null,
+                        ),
+                        Container(
+                          padding: const EdgeInsets.only(top: 24),
+                          child: IconButton(
+                            padding: const EdgeInsets.all(0),
+                            icon: const CircularIconButton(
+                              iconSize: 24,
+                              backgroundSize: 48,
+                              svgIconPath: 'assets/svg/check_small.svg',
+                            ),
+                            onPressed: () {
+                              context.go('/shareBill');
+                            },
+                          ),
+                        )
+                      ],
                     ),
-                    Container(
-                      padding: const EdgeInsets.only(top: 20),
-                      child: IconButton(
-                        padding: const EdgeInsets.all(0),
-                        icon: const CircularIconButton(
-                          iconSize: 24,
-                          backgroundSize: 48,
-                          svgIconPath: 'assets/svg/share.svg',
-                        ),
-                        onPressed: () {
-                          context.go('/shareBill');
-                        },
-                      ),
-                    )
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: 272.0,
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      ..._receiptStore.items
-                          .where((item) => item['price'] != 0)
-                          .map<Widget>((item) {
-                        return Stack(
-                          children: [
-                            SizedBox(
-                              height: 272,
-                              width: 224,
-                              child: ItemCard(item: item),
-                            ),
-                            Positioned(
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              height: 122,
-                              child: GestureDetector(
-                                onTap: () => _navigateToEditItem(context, item),
-                              ),
-                            ),
-                          ],
-                        );
-                      }),
-                      SizedBox(
-                        height: 272,
-                        width: 224,
-                        child: AddItemPlaceholder(
-                          onAdd: () => _navigateToCreateItem(context),
-                        ),
-                      ),
-                    ],
                   ),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Charges(),
-              ),
-              const SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Observer(
-                  builder: (_) => Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: AnimatedTotal(receiptStore: _receiptStore),
+                  SizedBox(
+                    height: 272.0,
+                    child: SingleChildScrollView(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          ..._receiptStore.items
+                              .where((item) => item['price'] != 0)
+                              .map<Widget>((item) {
+                            return Stack(
+                              children: [
+                                SizedBox(
+                                  height: 272,
+                                  width: 232,
+                                  child: ItemCard(item: item),
+                                ),
+                                Positioned(
+                                  top: 0,
+                                  left: 0,
+                                  right: 0,
+                                  height: 122,
+                                  child: GestureDetector(
+                                    onTap: () =>
+                                        _navigateToEditItem(context, item),
+                                  ),
+                                ),
+                              ],
+                            );
+                          }),
+                          SizedBox(
+                            height: 272,
+                            width: 232,
+                            child: AddItemPlaceholder(
+                              onAdd: () => _navigateToCreateItem(context),
+                            ),
+                          ),
+                        ],
                       ),
-                      Pax(onTap: () => _navigateToFriendsPage(context)),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-              Observer(
-                builder: (_) {
-                  if (_friendStore.friends
-                      .where((friend) => friend.isSelected)
-                      .toList()
-                      .isEmpty) {
-                    return Align(
-                      alignment: Alignment.centerRight,
-                      child: Container(
-                        height: 153,
-                        width: 269,
-                        padding: const EdgeInsets.only(right: 16.0),
-                        child: Image.asset('assets/png/guide.png'),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Charges(),
+                  ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                    child: Observer(
+                      builder: (_) => Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: AnimatedTotal(receiptStore: _receiptStore),
+                          ),
+                          Pax(onTap: () => _navigateToFriendsPage(context)),
+                        ],
                       ),
-                    );
-                  } else {
-                    return Container();
-                  }
-                },
-              ),
-              const SizedBox(height: 24),
-              Expanded(
-                child: Observer(
-                  builder: (_) {
-                    const space = 8.0;
-                    final selectedFriends = _friendStore.friends
-                        .where((friend) => friend.isSelected)
-                        .toList();
-                    return SingleChildScrollView(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Wrap(
-                          spacing: space,
-                          runSpacing: space,
-                          children: [
-                            for (var friend in selectedFriends)
-                              LayoutBuilder(
-                                builder: (context, constraints) {
-                                  final maxWidth = constraints.maxWidth;
-                                  final minWidth = (maxWidth - space) / 2;
-                                  final billAmount =
-                                      '\$${_receiptStore.calculatePersonBill(friend.id).toStringAsFixed(2)}';
-                                  final widgetWidth = calculateWidgetWidth(
-                                      friend.name,
-                                      billAmount,
-                                      maxWidth,
-                                      minWidth);
+                    ),
+                  ),
+                  Observer(
+                    builder: (_) {
+                      if (_friendStore.friends
+                          .where((friend) => friend.isSelected)
+                          .toList()
+                          .isEmpty) {
+                        return Align(
+                          alignment: Alignment.topRight,
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              final double screenWidth = constraints.maxWidth;
+                              final double containerWidth = screenWidth * 0.55;
 
-                                  return SizedBox(
-                                    width: widgetWidth,
-                                    child: Draggable<int>(
-                                      data: friend.id,
-                                      feedback: ColorCircle(
-                                        size: 69,
-                                        text: friend.name[0],
-                                        color: friend.color,
-                                        fontSize: 32.0,
-                                      ),
-                                      child: FriendWithBill(friend: friend),
-                                    ),
-                                  );
-                                },
-                              ),
-                          ],
+                              return Container(
+                                width: containerWidth,
+                                padding: const EdgeInsets.only(right: 36.0),
+                                child: Image.asset(
+                                    'assets/png/guide_friends.png',
+                                    fit: BoxFit.cover),
+                              );
+                            },
+                          ),
+                        );
+                      } else {
+                        return Container();
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  Expanded(
+                    child: Observer(
+                      builder: (_) {
+                        const space = 8.0;
+                        final selectedFriends = _friendStore.friends
+                            .where((friend) => friend.isSelected)
+                            .toList();
+                        return SingleChildScrollView(
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Wrap(
+                              spacing: space,
+                              runSpacing: space,
+                              children: [
+                                for (var friend in selectedFriends)
+                                  LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      final maxWidth = constraints.maxWidth;
+                                      final minWidth = (maxWidth - space) / 2;
+                                      final billAmount =
+                                          '\$${_receiptStore.calculatePersonBill(friend.id).toStringAsFixed(2)}';
+                                      final widgetWidth = calculateWidgetWidth(
+                                          friend.name,
+                                          billAmount,
+                                          maxWidth,
+                                          minWidth);
+
+                                      return SizedBox(
+                                        width: widgetWidth,
+                                        child: FriendWithBill(
+                                          friend: friend,
+                                          isDraggable: true,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Observer(
+            builder: (_) {
+              if (_receiptStore.items.isNotEmpty &&
+                  _friendStore.friends
+                      .where((friend) => friend.isSelected)
+                      .isNotEmpty &&
+                  _guideStore.splitGuideState == GuideState.notViewed) {
+                return Stack(
+                  children: [
+                    Container(
+                      color: Colors.black.withOpacity(0.3),
+                    ),
+                    Positioned(
+                      top: 324,
+                      left: 38,
+                      child: Image.asset(
+                        'assets/png/guide_drag.png',
+                        width: 100,
+                      ),
+                    ),
+                    Positioned(
+                      top: 400,
+                      right: 24,
+                      child: GestureDetector(
+                        onTap: () {
+                          _guideStore.setSplitGuideViewed();
+                        },
+                        child: SvgPicture.asset(
+                          'assets/svg/guide_pop.svg',
+                          width: 282,
                         ),
                       ),
-                    );
-                  },
-                ),
-              ),
-            ],
+                    ),
+                  ],
+                );
+              } else {
+                return Container();
+              }
+            },
           ),
-        ),
+        ],
       ),
     );
   }

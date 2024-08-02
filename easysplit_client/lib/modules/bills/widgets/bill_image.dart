@@ -28,20 +28,12 @@ class BillImage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Center(
-            child: Text(
-              'Easy Split',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+          SvgPicture.asset(
+            'assets/svg/image_header.svg',
+            width: 361,
+            height: 82,
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: SvgPicture.asset('assets/svg/bill_divider1.svg'),
-          ),
+          const SizedBox(height: 16),
           ...receiptStore.items
               .where((item) => item['price'] != 0)
               .map<Widget>((item) {
@@ -67,11 +59,12 @@ class BillImage extends StatelessWidget {
                           text: item['name'],
                           style: TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.normal,
+                            fontWeight: FontWeight.w400,
                             height: BillImageConstants.itemLineHeight / 16,
                             color: noAssignee
                                 ? BillImageConstants.unassignedItemColor
                                 : Colors.black,
+                            fontFamily: 'Poppins',
                           ),
                         ),
                       ),
@@ -100,12 +93,12 @@ class BillImage extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 if (allSelectedFriendsAssigned)
-                  const SizedBox(
+                  SizedBox(
                     height: 22,
                     child: Text(
                       BillImageConstants.shareByAllText,
                       style: TextStyle(
-                        color: Color.fromRGBO(13, 170, 220, 1),
+                        color: Theme.of(context).colorScheme.secondary,
                         fontSize: 16,
                         fontWeight: FontWeight.normal,
                       ),

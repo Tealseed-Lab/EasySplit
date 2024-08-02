@@ -60,7 +60,8 @@ abstract class CameraStoreBase with Store {
       cameras = await availableCameras();
       LogService.i("Number of available cameras: ${cameras.length}");
       if (cameras.isNotEmpty) {
-        controller = CameraController(cameras[0], ResolutionPreset.ultraHigh);
+        controller = CameraController(cameras[0], ResolutionPreset.ultraHigh,
+            enableAudio: false);
 
         await controller?.initialize();
         if (controller != null && controller!.value.isInitialized) {

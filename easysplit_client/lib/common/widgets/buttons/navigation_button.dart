@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 class NavigationButton extends StatelessWidget {
   final String pageName;
   final Color? backgroundColor;
+  final Color? iconBackgroundColor;
   final String? confirmMessage;
   final String? svgIconPath;
   final Map<String, dynamic>? extra;
@@ -14,6 +15,7 @@ class NavigationButton extends StatelessWidget {
     super.key,
     required this.pageName,
     this.backgroundColor,
+    this.iconBackgroundColor,
     this.confirmMessage,
     this.svgIconPath,
     this.extra,
@@ -22,8 +24,8 @@ class NavigationButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        padding: const EdgeInsets.only(top: 20),
-        height: 120,
+        margin: const EdgeInsets.only(top: 24),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         color: backgroundColor ?? Theme.of(context).primaryColor,
         child: Material(
           shape: const CircleBorder(),
@@ -34,6 +36,7 @@ class NavigationButton extends StatelessWidget {
             icon: CircularIconButton(
               iconSize: 24,
               backgroundSize: 48,
+              backgroundColor: iconBackgroundColor,
               svgIconPath: svgIconPath ?? "assets/svg/arrow-left.svg",
             ),
             onPressed: () {

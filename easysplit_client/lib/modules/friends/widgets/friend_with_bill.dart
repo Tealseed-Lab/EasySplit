@@ -9,8 +9,13 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 class FriendWithBill extends StatelessWidget {
   final Friend friend;
   final Color? backgroundColor;
+  final bool isDraggable;
 
-  FriendWithBill({super.key, required this.friend, this.backgroundColor});
+  FriendWithBill(
+      {super.key,
+      required this.friend,
+      this.backgroundColor,
+      this.isDraggable = false});
 
   final _receiptStore = locator<ReceiptStore>();
 
@@ -39,12 +44,29 @@ class FriendWithBill extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  ColorCircle(
-                    size: 36,
-                    text: friend.name[0],
-                    color: friend.color,
-                    fontSize: 16.0,
-                  ),
+                  if (isDraggable)
+                    Draggable<int>(
+                      data: friend.id,
+                      feedback: ColorCircle(
+                        size: 69,
+                        text: friend.name[0],
+                        color: friend.color,
+                        fontSize: 32.0,
+                      ),
+                      child: ColorCircle(
+                        size: 36,
+                        text: friend.name[0],
+                        color: friend.color,
+                        fontSize: 16.0,
+                      ),
+                    )
+                  else
+                    ColorCircle(
+                      size: 36,
+                      text: friend.name[0],
+                      color: friend.color,
+                      fontSize: 16.0,
+                    ),
                   const SizedBox(width: 8.0),
                   Expanded(
                     child: Column(

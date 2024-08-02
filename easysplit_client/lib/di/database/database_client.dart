@@ -2,9 +2,12 @@ import 'dart:io';
 
 import 'package:easysplit_flutter/common/services/log_service.dart';
 import 'package:easysplit_flutter/di/database/tables/friend_table.dart';
+import 'package:easysplit_flutter/di/database/tables/history_table.dart'; // Import the HistoryTable
 import 'package:injectable/injectable.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+
+const int databaseVersion = 2;
 
 abstract class DatabaseClient {
   Future<Database> initDatabase();
@@ -23,17 +26,22 @@ class SqliteDatabaseClient extends DatabaseClient {
     final path = await databasePath();
 
     if (File(path).existsSync()) {
-      LogService.i('Database already initialized at path: $path');
-      _database = await openDatabase(path);
+      LogService.i('Database already initialized.');
+      _database = await openDatabase(
+        path,
+        version: databaseVersion,
+        onUpgrade: _onUpgrade,
+      );
       return _database!;
     }
 
     final db = await openDatabase(
       path,
-      version: 1,
+      version: databaseVersion,
       onCreate: (Database db, int version) async {
         final batch = db.batch();
         batch.execute(FriendTable.create());
+        batch.execute(HistoryTable.create());
         await batch.commit();
         LogService.i('Database created at path: $path');
       },
@@ -42,6 +50,16 @@ class SqliteDatabaseClient extends DatabaseClient {
     LogService.i('Database initialized at path: $path');
 
     return db;
+  }
+
+  void _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    final batch = db.batch();
+    if (oldVersion < 2) {
+      batch.execute(HistoryTable.create());
+      LogService.i('History table created during upgrade.');
+    }
+    await batch.commit();
+    LogService.i('Database upgraded from version $oldVersion to $newVersion');
   }
 
   @override

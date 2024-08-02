@@ -1,3 +1,4 @@
+import 'package:easysplit_flutter/common/models/history/history.dart';
 import 'package:easysplit_flutter/di/locator.dart';
 import 'package:easysplit_flutter/modules/bills/pages/bill_page.dart';
 import 'package:easysplit_flutter/modules/bills/pages/create_item_page.dart';
@@ -6,10 +7,12 @@ import 'package:easysplit_flutter/modules/bills/pages/edit_item_page.dart';
 import 'package:easysplit_flutter/modules/bills/pages/share_bill_page.dart';
 import 'package:easysplit_flutter/modules/bills/stores/receipt_store.dart';
 import 'package:easysplit_flutter/modules/friends/pages/friends_page.dart';
+import 'package:easysplit_flutter/modules/home/pages/home_page.dart';
 import 'package:easysplit_flutter/modules/images/pages/camera_page.dart';
 import 'package:easysplit_flutter/modules/images/pages/network_error_page.dart';
 import 'package:easysplit_flutter/modules/images/pages/no_text_error_page.dart';
 import 'package:easysplit_flutter/modules/images/pages/transition_page.dart';
+import 'package:easysplit_flutter/modules/settings/pages/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -37,8 +40,24 @@ class App extends StatelessWidget {
 
   GoRouter _getRouter() {
     return GoRouter(
-      initialLocation: '/camera',
+      initialLocation: '/home',
       routes: [
+        GoRoute(
+          name: 'home',
+          path: '/home',
+          pageBuilder: (context, state) => NoTransitionPage(
+            key: state.pageKey,
+            child: const HomePage(),
+          ),
+        ),
+        GoRoute(
+          name: 'settings',
+          path: '/settings',
+          pageBuilder: (context, state) => NoTransitionPage(
+            key: state.pageKey,
+            child: const SettingsPage(),
+          ),
+        ),
         GoRoute(
           name: 'camera',
           path: '/camera',
@@ -48,24 +67,36 @@ class App extends StatelessWidget {
           ),
         ),
         GoRoute(
+          name: 'transition',
           path: '/transition',
-          builder: (context, state) =>
-              TransitioningPage(imagePath: state.extra as String),
+          builder: (context, state) {
+            final args = state.extra as Map<String, dynamic>;
+            return TransitioningPage(
+              imagePath: args['imagePath'],
+              fromPage: args['fromPage'],
+            );
+          },
         ),
         GoRoute(
-          path: '/network-error',
-          pageBuilder: (context, state) => NoTransitionPage(
-            key: state.pageKey,
-            child: NetworkErrorPage(imagePath: state.extra as String),
-          ),
-        ),
+            name: 'network-error',
+            path: '/network-error',
+            builder: (context, state) {
+              final args = state.extra as Map<String, dynamic>;
+              return NetworkErrorPage(
+                imagePath: args['imagePath'],
+                fromPage: args['fromPage'],
+              );
+            }),
         GoRoute(
-          path: '/no-text-error',
-          pageBuilder: (context, state) => NoTransitionPage(
-            key: state.pageKey,
-            child: NoTextErrorPage(imagePath: state.extra as String),
-          ),
-        ),
+            name: 'no-text-error',
+            path: '/no-text-error',
+            builder: (context, state) {
+              final args = state.extra as Map<String, dynamic>;
+              return NoTextErrorPage(
+                imagePath: args['imagePath'],
+                fromPage: args['fromPage'],
+              );
+            }),
         GoRoute(
           name: 'bill',
           path: '/bill',
@@ -124,18 +155,21 @@ class App extends StatelessWidget {
           name: 'friends',
           path: '/friends',
           builder: (context, state) {
-            final scrollPosition = (state.extra
-                as Map<String, dynamic>)['scrollPosition'] as double?;
+            final extra = state.extra as Map<String, dynamic>?;
+            final scrollPosition = extra?['scrollPosition'] as double?;
             return FriendsPage(scrollPosition: scrollPosition);
           },
         ),
         GoRoute(
           name: 'shareBill',
           path: '/shareBill',
-          pageBuilder: (context, state) => NoTransitionPage(
-            key: state.pageKey,
-            child: const ShareBillPage(),
-          ),
+          pageBuilder: (context, state) {
+            final history = state.extra as History?;
+            return NoTransitionPage(
+              key: state.pageKey,
+              child: ShareBillPage(history: history),
+            );
+          },
         ),
       ],
     );
@@ -161,6 +195,11 @@ class App extends StatelessWidget {
         labelSmall: TextStyle(fontFamily: 'Poppins'),
       ),
       primaryColor: const Color.fromARGB(255, 148, 209, 228),
+      colorScheme: ColorScheme.fromSwatch().copyWith(
+          primary: const Color.fromARGB(255, 148, 209, 228),
+          secondary: const Color.fromRGBO(13, 170, 220, 1),
+          surface: const Color.fromRGBO(255, 255, 255, 1),
+          shadow: const Color.fromRGBO(242, 242, 242, 1)),
     );
   }
 }

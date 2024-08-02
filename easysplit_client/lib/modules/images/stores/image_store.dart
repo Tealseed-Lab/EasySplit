@@ -31,7 +31,7 @@ abstract class ImageStoreBase with Store {
     try {
       final pickedFile = await _imageService.pickImage(source);
       if (pickedFile == null) {
-        LogService.e('Picked file is null');
+        LogService.i('Picked file is null');
         return null;
       }
       final file = File(pickedFile.path);

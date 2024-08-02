@@ -1,22 +1,31 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:easysplit_flutter/common/models/history/history.dart';
 import 'package:easysplit_flutter/common/services/log_service.dart';
+import 'package:easysplit_flutter/common/utils/constants/constants.dart';
+import 'package:easysplit_flutter/common/widgets/alerts/double_check_bottom_sheet.dart';
 import 'package:easysplit_flutter/common/widgets/buttons/circular_icon_button.dart';
 import 'package:easysplit_flutter/common/widgets/buttons/navigation_button.dart';
 import 'package:easysplit_flutter/di/locator.dart';
 import 'package:easysplit_flutter/modules/bills/stores/receipt_store.dart';
 import 'package:easysplit_flutter/modules/bills/widgets/bill_image.dart';
+import 'package:easysplit_flutter/modules/friends/stores/friend_store.dart';
+import 'package:easysplit_flutter/modules/home/stores/history_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 
 class ShareBillPage extends StatefulWidget {
-  const ShareBillPage({super.key});
+  final History? history;
+
+  const ShareBillPage({super.key, this.history});
 
   @override
   State<StatefulWidget> createState() {
@@ -27,9 +36,22 @@ class ShareBillPage extends StatefulWidget {
 class _ShareBillPageState extends State<ShareBillPage> {
   final ScreenshotController _screenshotController = ScreenshotController();
   final ReceiptStore receiptStore = locator<ReceiptStore>();
+  final FriendStore friendStore = locator<FriendStore>();
+  final HistoryStore historyStore = locator<HistoryStore>();
+
+  Uint8List? savedImage;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.history != null) {
+      savedImage = widget.history!.imageBlob;
+    }
+  }
 
   Future<void> _captureAndShareImage() async {
-    Uint8List? image = await _screenshotController.capture(pixelRatio: 3.0);
+    Uint8List? image =
+        savedImage ?? await _screenshotController.capture(pixelRatio: 3.0);
     if (image != null) {
       final directory = await getApplicationDocumentsDirectory();
       final imagePath = '${directory.path}/bill_image.png';
@@ -39,6 +61,10 @@ class _ShareBillPageState extends State<ShareBillPage> {
 
       final XFile xFile = XFile(imagePath);
       await Share.shareXFiles([xFile]);
+
+      if (widget.history == null) {
+        await _saveHistory(image);
+      }
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to capture image')),
@@ -48,7 +74,8 @@ class _ShareBillPageState extends State<ShareBillPage> {
   }
 
   Future<void> _captureAndSaveImage() async {
-    Uint8List? image = await _screenshotController.capture(pixelRatio: 3.0);
+    Uint8List? image =
+        savedImage ?? await _screenshotController.capture(pixelRatio: 3.0);
     if (image != null) {
       await PhotoManager.requestPermissionExtend();
       final directory = await getTemporaryDirectory();
@@ -57,13 +84,24 @@ class _ShareBillPageState extends State<ShareBillPage> {
       final imageFile = File(imagePath);
       await imageFile.writeAsBytes(image);
 
+      // unresolve issue for Android: https://github.com/fluttercandies/flutter_photo_manager/issues/1007
+      // final AssetEntity? assetEntity =
+      //     await PhotoManager.editor.saveImage(image, title: 'bill_image');
       final AssetEntity? assetEntity =
-          await PhotoManager.editor.saveImage(image, title: 'bill_image');
+          await PhotoManager.editor.saveImageWithPath(
+        imagePath,
+        title: 'bill_image',
+      );
+
       if (assetEntity != null) {
         receiptStore.showImageSaved();
         LogService.i('Image saved to gallery');
       } else if (mounted) {
         LogService.e('Failed to save image, assetEntity is null');
+      }
+
+      if (widget.history == null) {
+        await _saveHistory(image);
       }
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -73,9 +111,54 @@ class _ShareBillPageState extends State<ShareBillPage> {
     }
   }
 
+  Future<void> _saveHistory(Uint8List image) async {
+    final items = receiptStore.items.map((item) => item).toList();
+    final additionalCharges =
+        receiptStore.additionalCharges.map((charge) => charge).toList();
+    final additionalDiscounts =
+        receiptStore.additionalDiscounts.map((discount) => discount).toList();
+
+    final selectedFriends = friendStore.friends
+        .where((friend) => friend.isSelected)
+        .map((friend) => {
+              'name': friend.name,
+              'color': friend.color.value.toRadixString(16),
+            })
+        .toList();
+
+    await historyStore.saveHistory(
+      image,
+      json.encode(items),
+      json.encode(additionalCharges),
+      json.encode(additionalDiscounts),
+      receiptStore.total.toDouble(),
+      json.encode(selectedFriends),
+    );
+  }
+
+  void _confirmAndDeleteHistory() {
+    showDoubleCheckBottomSheet(
+      context,
+      title: '',
+      message: deleteSplitMessage,
+      onConfirm: _deleteHistory,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      confirmButtonColor: const Color.fromRGBO(255, 59, 48, 1),
+      flip: true,
+    );
+  }
+
+  Future<void> _deleteHistory() async {
+    if (widget.history != null) {
+      await historyStore.deleteHistory(widget.history!.id);
+      if (mounted) context.go('/home');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    receiptStore.calculateImageDimensions();
+    if (savedImage == null) receiptStore.calculateImageDimensions();
 
     return Scaffold(
       body: Stack(
@@ -87,59 +170,102 @@ class _ShareBillPageState extends State<ShareBillPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0),
-                    child: NavigationButton(
-                      pageName: 'bill',
-                      svgIconPath: 'assets/svg/close.svg',
-                      confirmMessage: null,
-                    ),
-                  ),
+                  Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            NavigationButton(
+                              pageName: savedImage != null ? 'home' : 'bill',
+                              svgIconPath: savedImage != null
+                                  ? 'assets/svg/close.svg'
+                                  : 'assets/svg/arrow-left.svg',
+                            ),
+                            if (widget.history == null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 24.0),
+                                child: IconButton(
+                                  padding: const EdgeInsets.all(0),
+                                  icon: const CircularIconButton(
+                                    iconSize: 24,
+                                    backgroundSize: 48,
+                                    svgIconPath: 'assets/svg/home.svg',
+                                  ),
+                                  onPressed: () {
+                                    context.go('/home');
+                                  },
+                                ),
+                              )
+                            else
+                              Padding(
+                                padding: const EdgeInsets.only(top: 24.0),
+                                child: IconButton(
+                                  padding: const EdgeInsets.all(0),
+                                  icon: SvgPicture.asset(
+                                    'assets/svg/redo_split.svg',
+                                    width: 126,
+                                    height: 38,
+                                  ),
+                                  onPressed: () {
+                                    receiptStore.setReceiptData({
+                                      'items':
+                                          json.decode(widget.history!.items),
+                                      'additional_charges': json.decode(
+                                          widget.history!.additionalCharges),
+                                      'additional_discounts': json.decode(
+                                          widget.history!.additionalDiscounts),
+                                    });
+                                    context.go('/bill');
+                                  },
+                                ),
+                              )
+                          ])),
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: Center(
-                        child: Screenshot(
-                          controller: _screenshotController,
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              double maxWidth = receiptStore.imageWidth;
-                              double maxHeight = receiptStore.imageHeight;
+                        child: savedImage != null
+                            ? Image.memory(savedImage!)
+                            : Screenshot(
+                                controller: _screenshotController,
+                                child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    double maxWidth = receiptStore.imageWidth;
+                                    double maxHeight = receiptStore.imageHeight;
 
-                              if (maxWidth <= 0 || maxHeight <= 0) {
-                                return const Center(
-                                  child: Text(
-                                    'Loading...',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                );
-                              }
-
-                              return FittedBox(
-                                fit: BoxFit.contain,
-                                child: ConstrainedBox(
-                                  constraints: BoxConstraints(
-                                    maxWidth: maxWidth,
-                                    maxHeight: maxHeight,
-                                  ),
-                                  child: BillImage(),
+                                    return FittedBox(
+                                      fit: BoxFit.contain,
+                                      child: ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          maxWidth: maxWidth,
+                                          maxHeight: maxHeight,
+                                        ),
+                                        child: BillImage(),
+                                      ),
+                                    );
+                                  },
                                 ),
-                              );
-                            },
-                          ),
-                        ),
+                              ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 10.0),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 124.0),
+                  Center(
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
+                        if (savedImage != null && widget.history?.id != 0)
+                          IconButton(
+                            icon: const CircularIconButton(
+                              iconSize: 24,
+                              backgroundSize: 48,
+                              svgIconPath: 'assets/svg/delete.svg',
+                            ),
+                            onPressed: _confirmAndDeleteHistory,
+                          ),
+                        if (savedImage != null && widget.history?.id != 0)
+                          const SizedBox(width: 36.0),
                         IconButton(
                           icon: const CircularIconButton(
                             iconSize: 24,
@@ -148,6 +274,7 @@ class _ShareBillPageState extends State<ShareBillPage> {
                           ),
                           onPressed: _captureAndShareImage,
                         ),
+                        const SizedBox(width: 36.0),
                         IconButton(
                           icon: const CircularIconButton(
                             iconSize: 24,

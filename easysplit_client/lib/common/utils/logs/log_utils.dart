@@ -19,6 +19,7 @@ void showShareDialog(BuildContext context, File logFile) {
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
+        backgroundColor: Theme.of(context).colorScheme.surface,
         title: const Text(shareLogsTitle,
             style: TextStyle(fontWeight: FontWeight.w600)),
         content: const Text(shareLogsMessage,

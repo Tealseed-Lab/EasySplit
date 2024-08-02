@@ -82,7 +82,7 @@ class _EditItemPageState extends State<EditItemPage> {
                     svgIconPath: 'assets/svg/close.svg',
                     extra: {'scrollPosition': widget.scrollPosition}),
                 Container(
-                  padding: const EdgeInsets.only(top: 20),
+                  padding: const EdgeInsets.only(top: 24),
                   child: IconButton(
                     padding: const EdgeInsets.all(0),
                     icon: const CircularIconButton(

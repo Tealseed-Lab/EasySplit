@@ -8,10 +8,12 @@ import 'package:go_router/go_router.dart';
 
 class NoTextErrorPage extends StatelessWidget {
   final String imagePath;
+  final String fromPage;
 
   const NoTextErrorPage({
     super.key,
     required this.imagePath,
+    required this.fromPage,
   });
 
   @override
@@ -20,7 +22,7 @@ class NoTextErrorPage extends StatelessWidget {
         backgroundColor: Colors.black,
         body: Stack(children: [
           Container(
-              margin: const EdgeInsets.fromLTRB(8, 54, 8, 48),
+              margin: const EdgeInsets.fromLTRB(8, 48, 8, 48),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(30.0),
                 color: Colors.black,
@@ -118,8 +120,8 @@ class NoTextErrorPage extends StatelessWidget {
               )),
           Container(
             padding: const EdgeInsets.all(16.0),
-            child: const NavigationButton(
-              pageName: 'camera',
+            child: NavigationButton(
+              pageName: fromPage,
               backgroundColor: Colors.transparent,
             ),
           )

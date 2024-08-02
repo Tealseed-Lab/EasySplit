@@ -14,24 +14,27 @@ class ColorCircleWithMinus extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: SizedBox(
         width: 42,
         height: 42,
-        padding: const EdgeInsets.all(3.0),
         child: Stack(
           children: [
-            ColorCircle(
-              size: 36,
-              text: friend.name[0],
-              color: friend.color,
-              fontSize: 16.0,
+            Positioned(
+              bottom: 0,
+              left: 0,
+              child: ColorCircle(
+                size: 36,
+                text: friend.name[0],
+                color: friend.color,
+                fontSize: 16.0,
+              ),
             ),
             Positioned(
               top: 0,
               right: 0,
               child: Container(
-                width: 14,
-                height: 14,
+                width: 16,
+                height: 16,
                 decoration: const BoxDecoration(
                   color: Color(0xFFDEDEDE),
                   shape: BoxShape.circle,

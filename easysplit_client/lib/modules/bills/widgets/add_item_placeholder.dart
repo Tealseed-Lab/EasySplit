@@ -12,7 +12,7 @@ class AddItemPlaceholder extends StatelessWidget {
     return GestureDetector(
         onTap: onAdd,
         child: Container(
-          padding: const EdgeInsets.all(4),
+          padding: const EdgeInsets.symmetric(horizontal: 4),
           child: Container(
             padding: const EdgeInsets.all(8.0),
             decoration: BoxDecoration(

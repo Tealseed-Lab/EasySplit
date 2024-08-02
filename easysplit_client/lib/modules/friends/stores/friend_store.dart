@@ -8,7 +8,7 @@ import 'package:mobx/mobx.dart';
 
 part 'friend_store.g.dart';
 
-@Singleton()
+@LazySingleton()
 class FriendStore = FriendStoreBase with _$FriendStore;
 
 abstract class FriendStoreBase with Store {
@@ -17,7 +17,9 @@ abstract class FriendStoreBase with Store {
 
   final FriendsRepository _friendsRepository;
 
-  FriendStoreBase(this._friendsRepository);
+  FriendStoreBase(this._friendsRepository) {
+    loadFriends();
+  }
 
   @observable
   ObservableList<Friend> friends = ObservableList<Friend>();
@@ -55,7 +57,7 @@ abstract class FriendStoreBase with Store {
   Future<void> addFriend(String name, Color color) async {
     final int currentTime = DateTime.now().microsecondsSinceEpoch;
     final bool isSelected = selectedFriendsCount < maximumSelectedFriends;
-    LogService.i('Adding friend: $name, $color, $currentTime, $isSelected');
+    LogService.i('Adding friend $name');
 
     final newFriendData = {
       'id': 0, // placeholder
@@ -80,7 +82,7 @@ abstract class FriendStoreBase with Store {
 
   @action
   Future<void> removeFriend(int id) async {
-    LogService.i('Removing friend: $id');
+    LogService.i('Removing friend $id');
     friends = ObservableList.of(friends.where((friend) => friend.id != id));
     await _friendsRepository.removeFriend(id);
   }
@@ -89,7 +91,7 @@ abstract class FriendStoreBase with Store {
   Future<bool> toggleSelection(int id) async {
     final friend = getFriendById(id);
     resetCurrentlySwipedFriendId();
-    LogService.i('Toggling selection for friend: $id');
+    LogService.i('Toggling selection for friend $id');
 
     if (friend != null) {
       if (selectedFriendsCount < maximumSelectedFriends || friend.isSelected) {

@@ -15,8 +15,10 @@ import 'package:lottie/lottie.dart';
 
 class TransitioningPage extends StatefulWidget {
   final String imagePath;
+  final String fromPage;
 
-  const TransitioningPage({super.key, required this.imagePath});
+  const TransitioningPage(
+      {super.key, required this.imagePath, required this.fromPage});
 
   @override
   State<StatefulWidget> createState() {
@@ -47,7 +49,7 @@ class _TransitioningPageState extends State<TransitioningPage>
 
   Future<void> _uploadImage() async {
     try {
-      LogService.i("Scanning the image.");
+      LogService.i("Scanning the image");
       final success = await _imageStore.uploadImage(File(widget.imagePath));
       if (!mounted) return;
       if (success) {
@@ -78,7 +80,8 @@ class _TransitioningPageState extends State<TransitioningPage>
   void _navigateToErrorPage(String route) {
     _controller.stop();
     _receiptStore.setEmptyReceiptData();
-    context.go(route, extra: widget.imagePath);
+    context.go(route,
+        extra: {'imagePath': widget.imagePath, 'fromPage': widget.fromPage});
   }
 
   @override
@@ -95,7 +98,7 @@ class _TransitioningPageState extends State<TransitioningPage>
         children: [
           Center(
             child: Container(
-              margin: const EdgeInsets.fromLTRB(8, 54, 8, 48),
+              margin: const EdgeInsets.fromLTRB(8, 48, 8, 48),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(30.0),
                 color: Colors.black,
@@ -195,8 +198,8 @@ class _TransitioningPageState extends State<TransitioningPage>
           ),
           Container(
             padding: const EdgeInsets.all(16.0),
-            child: const NavigationButton(
-              pageName: 'camera',
+            child: NavigationButton(
+              pageName: widget.fromPage,
               backgroundColor: Colors.transparent,
             ),
           ),

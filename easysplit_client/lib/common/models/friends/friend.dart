@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:json_pretty/json_pretty.dart';
 
 part 'friend.g.dart';
 
@@ -32,11 +31,6 @@ class Friend {
   factory Friend.fromJson(Map<String, dynamic> json) => _$FriendFromJson(json);
 
   Map<String, dynamic> toJson() => _$FriendToJson(this);
-
-  @override
-  String toString() {
-    return prettyPrintJson(toJson()).toString();
-  }
 
   static Color _colorFromJson(String colorString) {
     return Color(int.parse(colorString, radix: 16)).withOpacity(1.0);

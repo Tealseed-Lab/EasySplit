@@ -105,8 +105,11 @@ class DoubleCheckBottomSheet extends StatelessWidget {
                       alignment: Alignment.center,
                       child: Text(
                         confirmText ?? 'Confirm',
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w400),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          color: confirmButtonColor ?? Colors.black,
+                        ),
                       ),
                     ),
                     onTap: () {
@@ -124,9 +127,11 @@ class DoubleCheckBottomSheet extends StatelessWidget {
                                 alignment: Alignment.center,
                                 child: Text(
                                   confirmText ?? 'Confirm',
-                                  style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w400),
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w400,
+                                    color: confirmButtonColor ?? Colors.black,
+                                  ),
                                 ),
                               ),
                               onTap: () {
@@ -146,9 +151,11 @@ class DoubleCheckBottomSheet extends StatelessWidget {
                                 alignment: Alignment.center,
                                 child: Text(
                                   cancelText ?? 'Cancel',
-                                  style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w400),
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w400,
+                                    color: cancelButtonColor ?? Colors.black,
+                                  ),
                                 ),
                               ),
                               onTap: () {
@@ -168,9 +175,11 @@ class DoubleCheckBottomSheet extends StatelessWidget {
                                 alignment: Alignment.center,
                                 child: Text(
                                   cancelText ?? 'Cancel',
-                                  style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w400),
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w400,
+                                    color: cancelButtonColor ?? Colors.black,
+                                  ),
                                 ),
                               ),
                               onTap: () {
@@ -190,6 +199,11 @@ class DoubleCheckBottomSheet extends StatelessWidget {
                                 alignment: Alignment.center,
                                 child: Text(
                                   confirmText ?? 'Confirm',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w400,
+                                    color: confirmButtonColor ?? Colors.black,
+                                  ),
                                 ),
                               ),
                               onTap: () {

@@ -112,9 +112,9 @@ abstract class ReceiptStoreBase with Store {
 
       textPainter.layout(maxWidth: BillImageConstants.itemTextWidth);
 
-      int lines =
-          (textPainter.size.height / BillImageConstants.itemLineHeight).ceil();
-      lines = lines > 2 ? 2 : lines;
+      double lines =
+          textPainter.size.height / BillImageConstants.itemLineHeight;
+      lines = lines > 1.05 ? 2 : 1;
 
       if (lines > 1) {
         totalHeight += BillImageConstants.itemLineHeight * 2 - 1;
@@ -138,7 +138,7 @@ abstract class ReceiptStoreBase with Store {
 
   @action
   void setReceiptData(Map<String, dynamic> data) {
-    LogService.i('Setting receipt data.');
+    LogService.i('Setting receipt data');
     items = ObservableList.of(List<Map<String, dynamic>>.from(data['items']));
     additionalCharges = ObservableList.of(
         List<Map<String, dynamic>>.from(data['additional_charges']));

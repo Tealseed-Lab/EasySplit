@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 // BillImage Constants
 class BillImageConstants {
   static const double baseWidth = 393;
-  static const double baseHeight = 250;
+  static const double baseHeight = 282;
   static const double itemLineHeight = 22;
-  static const double itemTextWidth = 200;
-  static const double itemAmountWidth = 150;
+  static const double itemTextWidth = 230;
+  static const double itemAmountWidth = 130;
   static const String shareByAllText = 'Shared by all';
   static const Color unassignedItemColor = Color.fromRGBO(255, 72, 70, 1);
   static const Color additionalChargesColor = Color.fromRGBO(60, 60, 67, 0.60);
@@ -26,6 +26,8 @@ class BillImageConstants {
   static const TextStyle textStyle = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w400,
+    height: BillImageConstants.itemLineHeight / 16,
+    fontFamily: 'Poppins',
   );
 }
 
@@ -43,8 +45,8 @@ const String cameraPermissionMessage =
 const String photoLibraryPermissionTitle = "Unable to access photo library";
 const String photoLibraryPermissionMessage =
     "Allow access to the photo library for a more comprehensive experience.";
-const String clearConstantMessage =
-    "Clear current contents and back to camera?";
+const String clearContentMessage = "Clear current contents and back to home?";
+const String deleteSplitMessage = "Delete this split?";
 const String dragPersonPlaceholderText = "Drag the person to here";
 const String manualEnterBillPrompt = "Enter the bill manually";
 const String connectionFailedText = "Connection failed";
@@ -60,6 +62,10 @@ const String shareLogsText = "Here are the logs.";
 const String maximumSelectedFriendsToast =
     "You can select a maximum of 8 people";
 const String maximumFriendsToast = "You can add a maximum of 20 people";
+const String addFriendHint = "Add friend";
+const String historyTitle = "History";
+const String diningFriendsTitle = "Dining friends";
+const String noHistoryText = "No history yet";
 
 // Processing Texts
 final List<String> processingTexts = [

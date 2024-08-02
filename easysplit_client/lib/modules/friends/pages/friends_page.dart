@@ -110,9 +110,12 @@ class _FriendsPageState extends State<FriendsPage> with WidgetsBindingObserver {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               NavigationButton(
-                  pageName: 'bill',
-                  svgIconPath: 'assets/svg/arrow-left.svg',
-                  extra: {'scrollPosition': widget.scrollPosition}),
+                pageName: widget.scrollPosition != null ? 'bill' : 'home',
+                svgIconPath: 'assets/svg/arrow-left.svg',
+                extra: widget.scrollPosition != null
+                    ? {'scrollPosition': widget.scrollPosition}
+                    : null,
+              ),
               Container(
                 height: 54,
                 padding:
@@ -136,29 +139,30 @@ class _FriendsPageState extends State<FriendsPage> with WidgetsBindingObserver {
                         child: Align(
                           alignment: Alignment.center,
                           child: TextField(
-                              focusNode: _friendStore.friends.isEmpty
-                                  ? _focusNode
-                                  : null,
-                              controller: _nameController,
-                              onSubmitted: (value) {
-                                _addFriend();
-                              },
-                              decoration: const InputDecoration(
-                                hintText: 'Type something ...',
-                                hintStyle: TextStyle(
-                                  color: Color.fromRGBO(60, 60, 67, 0.3),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                                border: InputBorder.none,
-                              ),
-                              style: const TextStyle(
-                                color: Colors.black,
+                            focusNode: _friendStore.friends.isEmpty
+                                ? _focusNode
+                                : null,
+                            controller: _nameController,
+                            onSubmitted: (value) {
+                              _addFriend();
+                            },
+                            decoration: const InputDecoration(
+                              hintText: addFriendHint,
+                              hintStyle: TextStyle(
+                                color: Color.fromRGBO(60, 60, 67, 0.3),
                                 fontSize: 16,
                                 fontWeight: FontWeight.w400,
                               ),
-                              cursorColor:
-                                  const Color.fromRGBO(13, 170, 220, 1)),
+                              border: InputBorder.none,
+                            ),
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w400,
+                            ),
+                            cursorColor:
+                                Theme.of(context).colorScheme.secondary,
+                          ),
                         ),
                       ),
                     ),

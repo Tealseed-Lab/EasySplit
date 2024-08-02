@@ -19,7 +19,7 @@ class Charges extends StatelessWidget {
         ];
 
         return SizedBox(
-          height: 80,
+          height: 57,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: chargesAndDiscounts.length,
@@ -67,16 +67,18 @@ class Charges extends StatelessWidget {
                       ),
                       Container(
                         width: 150,
-                        height: 45,
-                        padding: const EdgeInsets.all(10),
+                        height: 38,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
-                          color: Colors.grey.withOpacity(0.3),
+                          color: Colors.black.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
                           isDiscount ? '-\$${amount.abs()}' : '\$$amount',
                           style: const TextStyle(
-                            fontSize: 18,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
                             color: Colors.black,
                           ),
                         ),

@@ -14,9 +14,8 @@ void main() {
       DeviceOrientation.portraitDown,
     ]);
     await LogService.init();
-    await configureDependencies();
-
-    LogService.i('Starting the app.');
+    await initializeDependencies();
+    LogService.i('Starting the app');
     runApp(App());
   }, (error, stack) {
     LogService.e('Unhandled error: $error', stackTrace: stack);

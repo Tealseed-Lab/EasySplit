@@ -21,9 +21,9 @@ class ItemCard extends StatelessWidget {
 
     return Observer(
       builder: (_) => Container(
-        padding: const EdgeInsets.all(4),
+        padding: const EdgeInsets.symmetric(horizontal: 4),
         child: Container(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
@@ -37,7 +37,10 @@ class ItemCard extends StatelessWidget {
                     height: 40,
                     child: Text('\$${item['price']}',
                         style: const TextStyle(
-                            fontSize: 36.0, fontWeight: FontWeight.w600)),
+                          fontSize: 36.0,
+                          fontWeight: FontWeight.w600,
+                          height: 1.0,
+                        )),
                   ),
                   const SizedBox(height: 8.0),
                   SizedBox(
@@ -121,8 +124,8 @@ class ItemCard extends StatelessWidget {
                   Container(
                     width: double.infinity,
                     height: 1,
-                    color: Colors.grey,
-                    margin: const EdgeInsets.symmetric(vertical: 10.0),
+                    color: Colors.black.withOpacity(0.06),
+                    margin: const EdgeInsets.symmetric(vertical: 7.5),
                   ),
                   Wrap(
                     spacing: 8.0,
@@ -132,13 +135,15 @@ class ItemCard extends StatelessWidget {
                             _receiptStore.itemAssignments[itemIndex]!.isEmpty
                         ? [
                             Container(
-                                padding: const EdgeInsets.all(4.0),
-                                width: 36.0,
-                                height: 36.0,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Color(0xFFF4F4F4),
-                                )),
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Container(
+                                  width: 36.0,
+                                  height: 36.0,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Color(0xFFF4F4F4),
+                                  )),
+                            ),
                           ]
                         : _receiptStore.itemAssignments[itemIndex]
                                 ?.map((personId) {
@@ -175,7 +180,7 @@ class ItemCard extends StatelessWidget {
                 builder: (context, candidateData, rejectedData) {
                   return const SizedBox(
                     height: 272,
-                    width: 224,
+                    width: 232,
                   );
                 },
               ),
