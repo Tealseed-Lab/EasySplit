@@ -15,7 +15,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/chai2010/webp"
 	"github.com/google/uuid"
-	"github.com/nfnt/resize"
 )
 
 type S3Service struct {
@@ -72,19 +71,8 @@ func ImageToWebpReader(img image.Image, format string) (io.Reader, string, error
 	return &buf, suffix, nil
 }
 
-func ResizeImage(img image.Image, size uint) image.Image {
-	imgSize := img.Bounds().Max
-	if imgSize.X > imgSize.Y {
-		return resize.Resize(0, size, img, resize.Lanczos3)
-	} else {
-		return resize.Resize(size, 0, img, resize.Lanczos3)
-	}
-}
-
-func (s *S3Service) UploadImage(img image.Image, path string, size uint, format string) (string, error) {
-
-	resizedImg := ResizeImage(img, size)
-	imgReader, suffix, err := ImageToWebpReader(resizedImg, format)
+func (s *S3Service) UploadImage(img image.Image, path string, format string) (string, error) {
+	imgReader, suffix, err := ImageToWebpReader(img, format)
 	if err != nil {
 		logger.Log.WithField("error", err.Error()).Error("Failed to convert image to WebP")
 		return "", fmt.Errorf("failed to convert image to WebP: %v", err)

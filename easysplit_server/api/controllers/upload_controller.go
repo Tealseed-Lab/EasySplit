@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"easysplit_server/api/services"
 	"image"
-	"image/jpeg"
-	"image/png"
 	"io"
 	"net/http"
 	"time"
@@ -20,13 +18,15 @@ type UploadController struct {
 	S3Service     *services.S3Service
 	OpenAIService *services.OpenAIService
 	VisionService *services.VisionService
+	ImageResizer  *services.ImageResizer
 }
 
-func NewUploadController(s3Service *services.S3Service, openAIService *services.OpenAIService, visionService *services.VisionService) *UploadController {
+func NewUploadController(s3Service *services.S3Service, openAIService *services.OpenAIService, visionService *services.VisionService, imageResizer *services.ImageResizer) *UploadController {
 	return &UploadController{
 		S3Service:     s3Service,
 		OpenAIService: openAIService,
 		VisionService: visionService,
+		ImageResizer:  imageResizer,
 	}
 }
 
@@ -45,6 +45,8 @@ func (uc *UploadController) handleError(c *gin.Context, sessionID string, status
 func (uc *UploadController) UploadAndProcessHandler(c *gin.Context) {
 	sessionID := c.Request.Header.Get("Session-ID")
 
+	startTime := time.Now()
+
 	file, header, err := c.Request.FormFile("receipt_image")
 	if err != nil {
 		uc.handleError(c, sessionID, http.StatusBadRequest, "FILE_UPLOAD_ERROR", "Failed to get file from request", err)
@@ -52,104 +54,139 @@ func (uc *UploadController) UploadAndProcessHandler(c *gin.Context) {
 	}
 	defer file.Close()
 
-	logger.Log.WithFields(logrus.Fields{
-		"filename":   header.Filename,
-		"size":       header.Size,
-		"session_id": sessionID,
-	}).Info("Uploaded file")
-
+	fileReadStartTime := time.Now()
 	var buf bytes.Buffer
-	n, err := io.Copy(&buf, file)
+	_, err = io.Copy(&buf, file)
 	if err != nil {
 		uc.handleError(c, sessionID, http.StatusInternalServerError, "FILE_READ_ERROR", "Failed to read file into buffer", err)
 		return
 	}
 
-	logger.Log.WithFields(logrus.Fields{
-		"bytes_read":     n,
-		"buffer_length":  buf.Len(),
-		"buffer_preview": buf.Bytes()[:10],
-		"session_id":     sessionID,
-	}).Info("Buffer details")
+	fileReadTime := time.Now()
+	imageBytes := buf.Bytes()
+	imageSize := len(imageBytes)
+	threshold1 := 500000  // 500 KB, if below no resize
+	threshold2 := 2000000 // 2 MB, if below resize for detection, if above resize for upload
 
-	reader := bytes.NewReader(buf.Bytes())
-
-	var img image.Image
+	var imageToUpload image.Image
 	var format string
 
-	img, format, err = image.Decode(reader)
-	if err != nil {
-		reader.Seek(0, io.SeekStart)
-		img, err = jpeg.Decode(reader)
-		if err == nil {
-			format = "jpeg"
-		} else {
-			reader.Seek(0, io.SeekStart)
-			img, err = png.Decode(reader)
-			format = "png"
-			if err != nil {
-				uc.handleError(c, sessionID, http.StatusBadRequest, "IMAGE_DECODE_ERROR", "Failed to decode image", err)
-				return
-			}
+	// Start Vision API detection in a goroutine
+	visionDetectionChan := make(chan string)
+	if imageSize <= threshold1 {
+		// Directly use the image for detection and upload
+		go uc.detectTextFromImage(imageBytes, visionDetectionChan, sessionID)
+		reader := bytes.NewReader(imageBytes)
+		imageToUpload, format, err = image.Decode(reader)
+		if err != nil {
+			uc.handleError(c, sessionID, http.StatusBadRequest, "IMAGE_DECODE_ERROR", "Failed to decode image", err)
+			return
+		}
+	} else if imageSize <= threshold2 {
+		// Use the original size for detection, but resize for upload
+		go uc.detectTextFromImage(imageBytes, visionDetectionChan, sessionID)
+
+		// Resize the image for uploading
+		resizedImageBytes, _, err := uc.ImageResizer.DecodeAndResizeImage(imageBytes, 1290)
+		if err != nil {
+			uc.handleError(c, sessionID, http.StatusInternalServerError, "IMAGE_RESIZE_ERROR", "Failed to decode and resize image", err)
+			return
+		}
+		reader := bytes.NewReader(resizedImageBytes)
+		imageToUpload, format, err = image.Decode(reader)
+		if err != nil {
+			uc.handleError(c, sessionID, http.StatusBadRequest, "IMAGE_DECODE_ERROR", "Failed to decode resized image", err)
+			return
+		}
+	} else {
+		// Resize first, then do image detection and upload
+		resizedImageBytes, _, err := uc.ImageResizer.DecodeAndResizeImage(imageBytes, 1290)
+		if err != nil {
+			uc.handleError(c, sessionID, http.StatusInternalServerError, "IMAGE_RESIZE_ERROR", "Failed to decode and resize image", err)
+			return
+		}
+
+		go uc.detectTextFromImage(resizedImageBytes, visionDetectionChan, sessionID)
+
+		reader := bytes.NewReader(resizedImageBytes)
+		imageToUpload, format, err = image.Decode(reader)
+		if err != nil {
+			uc.handleError(c, sessionID, http.StatusBadRequest, "IMAGE_DECODE_ERROR", "Failed to decode resized image", err)
+			return
 		}
 	}
 
-	path := "uploads/"
-	size := uint(1290)
-
-	location, err := uc.S3Service.UploadImage(img, path, size, format)
+	s3UploadStartTime := time.Now()
+	location, err := uc.S3Service.UploadImage(imageToUpload, "uploads/", format)
 	if err != nil {
 		uc.handleError(c, sessionID, http.StatusInternalServerError, "S3_UPLOAD_ERROR", "Failed to upload image to S3", err)
 		return
 	}
+	s3UploadEndTime := time.Now()
 
-	detectedTexts, err := uc.VisionService.DetectTextFromImageURL(location)
-	if err != nil {
-		logger.Log.WithFields(logrus.Fields{
-			"error":      err.Error(),
-			"session_id": sessionID,
-		}).Error("Failed to detect text from image")
-	}
+	detectedTexts := <-visionDetectionChan
+	visionDetectionTime := time.Now()
 
 	if detectedTexts == "" {
 		logger.Log.WithFields(logrus.Fields{
 			"session_id": sessionID,
 		}).Info("No text detected in image")
-		c.JSON(http.StatusOK, gin.H{"data": gin.H{}, "message": "No text detected", "location": location, "no_text_detected": true})
+		c.JSON(http.StatusOK, gin.H{"data": gin.H{}, "message": "No text detected", "no_text_detected": true})
 		return
 	}
 
-	logger.Log.WithFields(logrus.Fields{
-		"detected_text": detectedTexts,
-		"session_id":    sessionID,
-	}).Info("Detected text from image")
-
-	messages := services.BuildOpenAIMessages(location, detectedTexts)
-	startTime := time.Now()
+	// Build and call OpenAI API
+	messages := services.BuildOpenAIMessages(detectedTexts)
+	startOpenAITime := time.Now()
 
 	response, err := uc.OpenAIService.CallOpenAIAPI(sessionID, messages)
-	duration := time.Since(startTime)
+	openAICallDuration := time.Since(startOpenAITime)
 
 	if err != nil {
 		uc.handleError(c, sessionID, http.StatusInternalServerError, "OPENAI_API_ERROR", "OpenAI API call failed", err)
 		return
 	}
 
-	logger.Log.WithFields(logrus.Fields{
-		"session_id": sessionID,
-		"time_taken": duration.Seconds(),
-	}).Info("OpenAI API call succeeded")
-
+	startParseTime := time.Now()
 	var parsedResponse map[string]interface{}
 	err = services.ParseOpenAIResponse(response, &parsedResponse)
+	parseResponseDuration := time.Since(startParseTime)
+
 	if err != nil {
 		uc.handleError(c, sessionID, http.StatusInternalServerError, "PARSE_RESPONSE_ERROR", "Failed to parse OpenAI response", err)
 		return
 	}
 
+	totalTime := time.Since(startTime)
+
+	timings := map[string]float64{
+		"file_read_time":        fileReadTime.Sub(fileReadStartTime).Seconds(),
+		"s3_upload_time":        s3UploadEndTime.Sub(s3UploadStartTime).Seconds(),
+		"vision_detection_time": visionDetectionTime.Sub(fileReadTime).Seconds(),
+		"openai_call_duration":  openAICallDuration.Seconds(),
+		"parse_response_time":   parseResponseDuration.Seconds(),
+		"total_time":            totalTime.Seconds(),
+	}
+
 	logger.Log.WithFields(logrus.Fields{
 		"session_id": sessionID,
+		"file_size":  header.Size,
+		"timings":    timings,
 	}).Info("Image processed successfully")
 
 	c.JSON(http.StatusOK, gin.H{"data": parsedResponse, "message": "Image processed successfully", "location": location})
+}
+
+// Detect text from the image using Google Vision API
+func (uc *UploadController) detectTextFromImage(imageBytes []byte, ch chan<- string, sessionID string) {
+	detectedTexts, err := uc.VisionService.DetectTextFromImage(imageBytes)
+	if err != nil {
+		logger.Log.WithFields(logrus.Fields{
+			"error":      err.Error(),
+			"session_id": sessionID,
+		}).Error("Failed to detect text from image")
+		ch <- ""
+		return
+	}
+	ch <- detectedTexts
 }

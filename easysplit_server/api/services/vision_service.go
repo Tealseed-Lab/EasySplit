@@ -50,11 +50,9 @@ func getClient() (*vision.ImageAnnotatorClient, error) {
 	return client, nil
 }
 
-func (vs *VisionService) DetectTextFromImageURL(imageURL string) (string, error) {
+func (vs *VisionService) DetectTextFromImage(imageBytes []byte) (string, error) {
 	image := &visionpb.Image{
-		Source: &visionpb.ImageSource{
-			ImageUri: imageURL,
-		},
+		Content: imageBytes,
 	}
 
 	request := &visionpb.AnnotateImageRequest{

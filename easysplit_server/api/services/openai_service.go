@@ -50,39 +50,12 @@ type ChatCompletionMessage struct {
 	MultiContent []ChatMessagePart `json:"multi_content,omitempty"`
 }
 
-func BuildOpenAIMessages(imageURL string, detectedText string) []openai.ChatCompletionMessage {
-	var userContent []openai.ChatMessagePart
-
-	if len(detectedText) > 0 {
-		logger.Log.Info("Used Google Cloud Vision for OCR and GPT-4o for text processing")
-		userContent = []openai.ChatMessagePart{
-			// {
-			// 	Type: openai.ChatMessagePartTypeImageURL,
-			// 	ImageURL: &openai.ChatMessageImageURL{
-			// 		URL:    imageURL,
-			// 		Detail: openai.ImageURLDetailAuto,
-			// 	},
-			// },
-			{
-				Type: openai.ChatMessagePartTypeText,
-				Text: utils.OpenAIChatReceiptTextWithDetecedWords + detectedText,
-			},
-		}
-	} else {
-		logger.Log.Info("Used GPT-4o for image and text processing")
-		userContent = []openai.ChatMessagePart{
-			{
-				Type: openai.ChatMessagePartTypeText,
-				Text: utils.OpenAIChatReceiptText,
-			},
-			{
-				Type: openai.ChatMessagePartTypeImageURL,
-				ImageURL: &openai.ChatMessageImageURL{
-					URL:    imageURL,
-					Detail: openai.ImageURLDetailAuto,
-				},
-			},
-		}
+func BuildOpenAIMessages(detectedText string) []openai.ChatCompletionMessage {
+	userContent := []openai.ChatMessagePart{
+		{
+			Type: openai.ChatMessagePartTypeText,
+			Text: utils.OpenAIChatReceiptTextWithDetecedWords + detectedText,
+		},
 	}
 
 	return []openai.ChatCompletionMessage{

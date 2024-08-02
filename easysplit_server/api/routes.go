@@ -34,8 +34,9 @@ func SetupRouter() *gin.Engine {
 	s3Service := services.NewS3Service()
 	openAIService := services.NewOpenAIService()
 	visionService := services.NewVisionService()
+	imageResizer := services.NewImageResizer()
 
-	uploadController := controllers.NewUploadController(s3Service, openAIService, visionService)
+	uploadController := controllers.NewUploadController(s3Service, openAIService, visionService, imageResizer)
 
 	// Define routes
 	routes_v1 := router.Group("/api/v1")
