@@ -17,7 +17,9 @@ Current version on App Store: V1.2.0
 
 Whether you are new to EasySplit or curious about its implementation, you're invited to explore:
 
-- **Download**: You can download EasySplit from the Apple Store under the name "EasySplit: Split Bill Easily".
+- **Download**: You can download EasySplit from the App Store or Google Play Store.
+    - [Link to App Store](https://apps.apple.com/app/easysplit-split-bill-easily/id6503283357)
+    - [Link to Google Play Store](https://play.google.com/store/apps/details?id=com.tealseed.easysplit)
 - **Contribute**: If you are interested in contributing to EasySplit's development or exploring its codebase, you're in the right place.
 
 ### Step 1: Clone the EasySplit Repository
