@@ -1,15 +1,15 @@
 package utils
 
 const (
-	OpenAIModelType                       = "gpt-4o"
-	OpenAIModelTemperature                = 0.1
-	OpenAIModelTopP                       = 1
-	OpenAIModelMaxTokens                  = 800
-	OpenAIChatUserRole                    = "user"
-	OpenAIChatSystemRole                  = "system"
-	OpenAIChatReceiptText                 = `Make a list of every item in order, with its price (you can omit the items that are free). They receipt may use different terms, such as "Service Fee / Svg Chg / 服务费 / Tips" instead of "Service Charge / tax / 税" for GST, "折扣" for "Discount", "小计" for Subtotal, "合计" for Total, please convert them "Service Charge", "GST", "Discount" should always exist, but can have value 0.`
-	OpenAIChatReceiptTextWithDetecedWords = OpenAIChatReceiptText + " You could find the items names and prices here: "
-	OpenAIChatSystemContent               = `You will be provided with a receipt photo. The right most column should be the prices that matter, there may be other prices on the left indicating what is included). Convert the receipt information to the following JSON format.
+	OpenAIModelType                        = "gpt-4o"
+	OpenAIModelTemperature                 = 0.1
+	OpenAIModelTopP                        = 1
+	OpenAIModelMaxTokens                   = 2000
+	OpenAIChatUserRole                     = "user"
+	OpenAIChatSystemRole                   = "system"
+	OpenAIChatReceiptText                  = `Make a list of every item in order, with its price (you can omit the items that are free). They receipt may use different terms, such as "Service Fee / Svg Chg / 服务费 / Tips" for "Service Charge" and "tax / 税" for GST, "折扣" for "Discount", "小计" for Subtotal, "合计" for Total, please convert them "Service Charge", "GST", "Discount" should always exist, but can have value 0.`
+	OpenAIChatReceiptTextWithDetectedWords = " You could find the items names and prices here: " + OpenAIChatReceiptText
+	OpenAIChatSystemContent                = `You will be provided with a receipt photo. The right most column should be the prices that matter, there may be other prices on the left indicating what is included). Convert the receipt information to the following JSON format.
 Example 1:
 {
 "items": [

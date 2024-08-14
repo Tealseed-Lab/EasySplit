@@ -6,13 +6,12 @@ require (
 	cloud.google.com/go/vision/v2 v2.8.2
 	github.com/aws/aws-sdk-go v1.53.12
 	github.com/cenkalti/backoff/v4 v4.3.0
-	github.com/chai2010/webp v1.1.1
 	github.com/gin-contrib/cors v1.7.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
-	github.com/sashabaranov/go-openai v1.24.1
+	github.com/sashabaranov/go-openai v1.28.1
 	github.com/sirupsen/logrus v1.9.3
 	google.golang.org/api v0.183.0
 )

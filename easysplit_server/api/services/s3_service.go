@@ -1,11 +1,10 @@
 package services
 
 import (
-	"bytes"
 	"fmt"
-	"image"
 	"io"
 	"os"
+	"time"
 
 	"easysplit_server/logger"
 
@@ -13,7 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"github.com/chai2010/webp"
 	"github.com/google/uuid"
 )
 
@@ -55,44 +53,30 @@ func NewS3Service() *S3Service {
 	}
 }
 
-func DecodeImage(r io.Reader) (image.Image, string, error) {
-	return image.Decode(r)
-}
+func (s *S3Service) UploadImage(img io.Reader, path string, format string) (string, error) {
+	startTime := time.Now()
 
-func ImageToWebpReader(img image.Image, format string) (io.Reader, string, error) {
-	var buf bytes.Buffer
-	options := &webp.Options{Lossless: true, Quality: 80}
-	err := webp.Encode(&buf, img, options)
-	suffix := ".webp"
-
-	if err != nil {
-		return nil, suffix, err
-	}
-	return &buf, suffix, nil
-}
-
-func (s *S3Service) UploadImage(img image.Image, path string, format string) (string, error) {
-	imgReader, suffix, err := ImageToWebpReader(img, format)
-	if err != nil {
-		logger.Log.WithField("error", err.Error()).Error("Failed to convert image to WebP")
-		return "", fmt.Errorf("failed to convert image to WebP: %v", err)
-	}
-
-	contentType := "image/webp"
-	dest := path + uuid.New().String() + suffix
+	contentType := "image/jpeg"
+	dest := path + uuid.New().String() + ".jpeg"
 
 	output, err := s.Uploader.Upload(&s3manager.UploadInput{
-		Bucket:      aws.String(s.BucketName),
-		Key:         aws.String(dest),
-		Body:        imgReader,
-		ACL:         aws.String("public-read"),
-		ContentType: aws.String(contentType),
+		Bucket:             aws.String(s.BucketName),
+		Key:                aws.String(dest),
+		Body:               img,
+		ACL:                aws.String("public-read"),
+		ContentType:        aws.String(contentType),
+		ContentDisposition: aws.String("inline"),
 	})
 	if err != nil {
 		logger.Log.WithField("error", err.Error()).Error("Failed to upload image to S3")
 		return "", fmt.Errorf("failed to upload image to S3: %v", err)
 	}
 
-	logger.Log.WithField("location", output.Location).Info("Successfully uploaded image to S3")
+	uploadDuration := time.Since(startTime).Seconds()
+	logger.Log.WithFields(map[string]interface{}{
+		"location":      output.Location,
+		"uploadTimeSec": uploadDuration,
+	}).Info("Successfully uploaded image to S3")
+
 	return output.Location, nil
 }

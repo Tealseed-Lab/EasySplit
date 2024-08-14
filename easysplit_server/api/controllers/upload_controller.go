@@ -3,7 +3,7 @@ package controllers
 import (
 	"bytes"
 	"easysplit_server/api/services"
-	"image"
+
 	"io"
 	"net/http"
 	"time"
@@ -47,7 +47,7 @@ func (uc *UploadController) UploadAndProcessHandler(c *gin.Context) {
 
 	startTime := time.Now()
 
-	file, header, err := c.Request.FormFile("receipt_image")
+	file, _, err := c.Request.FormFile("receipt_image")
 	if err != nil {
 		uc.handleError(c, sessionID, http.StatusBadRequest, "FILE_UPLOAD_ERROR", "Failed to get file from request", err)
 		return
@@ -68,7 +68,7 @@ func (uc *UploadController) UploadAndProcessHandler(c *gin.Context) {
 	threshold1 := 500000  // 500 KB, if below no resize
 	threshold2 := 2000000 // 2 MB, if below resize for detection, if above resize for upload
 
-	var imageToUpload image.Image
+	var reader io.Reader
 	var format string
 
 	// Start Vision API detection in a goroutine
@@ -76,31 +76,21 @@ func (uc *UploadController) UploadAndProcessHandler(c *gin.Context) {
 	if imageSize <= threshold1 {
 		// Directly use the image for detection and upload
 		go uc.detectTextFromImage(imageBytes, visionDetectionChan, sessionID)
-		reader := bytes.NewReader(imageBytes)
-		imageToUpload, format, err = image.Decode(reader)
-		if err != nil {
-			uc.handleError(c, sessionID, http.StatusBadRequest, "IMAGE_DECODE_ERROR", "Failed to decode image", err)
-			return
-		}
+		reader = bytes.NewReader(imageBytes)
 	} else if imageSize <= threshold2 {
 		// Use the original size for detection, but resize for upload
 		go uc.detectTextFromImage(imageBytes, visionDetectionChan, sessionID)
 
 		// Resize the image for uploading
-		resizedImageBytes, _, err := uc.ImageResizer.DecodeAndResizeImage(imageBytes, 1290)
+		resizedImageBytes, _, err := uc.ImageResizer.DecodeAndResizeImage(imageBytes, 1080)
 		if err != nil {
 			uc.handleError(c, sessionID, http.StatusInternalServerError, "IMAGE_RESIZE_ERROR", "Failed to decode and resize image", err)
 			return
 		}
-		reader := bytes.NewReader(resizedImageBytes)
-		imageToUpload, format, err = image.Decode(reader)
-		if err != nil {
-			uc.handleError(c, sessionID, http.StatusBadRequest, "IMAGE_DECODE_ERROR", "Failed to decode resized image", err)
-			return
-		}
+		reader = bytes.NewReader(resizedImageBytes)
 	} else {
 		// Resize first, then do image detection and upload
-		resizedImageBytes, _, err := uc.ImageResizer.DecodeAndResizeImage(imageBytes, 1290)
+		resizedImageBytes, _, err := uc.ImageResizer.DecodeAndResizeImage(imageBytes, 1080)
 		if err != nil {
 			uc.handleError(c, sessionID, http.StatusInternalServerError, "IMAGE_RESIZE_ERROR", "Failed to decode and resize image", err)
 			return
@@ -108,16 +98,11 @@ func (uc *UploadController) UploadAndProcessHandler(c *gin.Context) {
 
 		go uc.detectTextFromImage(resizedImageBytes, visionDetectionChan, sessionID)
 
-		reader := bytes.NewReader(resizedImageBytes)
-		imageToUpload, format, err = image.Decode(reader)
-		if err != nil {
-			uc.handleError(c, sessionID, http.StatusBadRequest, "IMAGE_DECODE_ERROR", "Failed to decode resized image", err)
-			return
-		}
+		reader = bytes.NewReader(resizedImageBytes)
 	}
 
 	s3UploadStartTime := time.Now()
-	location, err := uc.S3Service.UploadImage(imageToUpload, "uploads/", format)
+	location, err := uc.S3Service.UploadImage(reader, "uploads/", format)
 	if err != nil {
 		uc.handleError(c, sessionID, http.StatusInternalServerError, "S3_UPLOAD_ERROR", "Failed to upload image to S3", err)
 		return
@@ -149,7 +134,7 @@ func (uc *UploadController) UploadAndProcessHandler(c *gin.Context) {
 
 	startParseTime := time.Now()
 	var parsedResponse map[string]interface{}
-	err = services.ParseOpenAIResponse(response, &parsedResponse)
+	err = services.ParseOpenAIResponse(response, &parsedResponse, location)
 	parseResponseDuration := time.Since(startParseTime)
 
 	if err != nil {
@@ -170,7 +155,7 @@ func (uc *UploadController) UploadAndProcessHandler(c *gin.Context) {
 
 	logger.Log.WithFields(logrus.Fields{
 		"session_id": sessionID,
-		"file_size":  header.Size,
+		"file_size":  imageSize,
 		"timings":    timings,
 	}).Info("Image processed successfully")
 

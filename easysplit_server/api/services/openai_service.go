@@ -29,6 +29,11 @@ func NewOpenAIService() *OpenAIService {
 
 	httpClient := &http.Client{
 		Timeout: 30 * time.Second, // Set a timeout for the HTTP client
+		Transport: &http.Transport{
+			MaxIdleConns:        100,
+			MaxIdleConnsPerHost: 10,
+			IdleConnTimeout:     90 * time.Second,
+		},
 	}
 
 	config := openai.DefaultConfig(apiKey)
@@ -54,7 +59,7 @@ func BuildOpenAIMessages(detectedText string) []openai.ChatCompletionMessage {
 	userContent := []openai.ChatMessagePart{
 		{
 			Type: openai.ChatMessagePartTypeText,
-			Text: utils.OpenAIChatReceiptTextWithDetecedWords + detectedText,
+			Text: utils.OpenAIChatReceiptTextWithDetectedWords + detectedText,
 		},
 	}
 
@@ -93,6 +98,7 @@ func (s *OpenAIService) CallOpenAIAPI(sessionID string, messages []openai.ChatCo
 			Temperature: utils.OpenAIModelTemperature,
 			MaxTokens:   utils.OpenAIModelMaxTokens,
 		}
+
 		resp, err := s.Client.CreateChatCompletion(context.Background(), req)
 		duration := time.Since(startTime)
 
@@ -143,7 +149,7 @@ func (s *OpenAIService) CallOpenAIAPI(sessionID string, messages []openai.ChatCo
 	return response, nil
 }
 
-func ParseOpenAIResponse(response string, parsedResponse *map[string]interface{}) error {
+func ParseOpenAIResponse(response string, parsedResponse *map[string]interface{}, location string) error {
 	// Check if response is a valid JSON string
 	if !json.Valid([]byte(response)) {
 		return errors.New("response is not a valid JSON string")
@@ -151,16 +157,22 @@ func ParseOpenAIResponse(response string, parsedResponse *map[string]interface{}
 
 	// Unmarshal the response
 	if err := json.Unmarshal([]byte(response), parsedResponse); err != nil {
-		return fmt.Errorf("failed to parse OpenAI response: %v", err)
+		//log the response
+		logger.Log.WithFields(logrus.Fields{
+			"response": response,
+		}).Error("Failed to parse OpenAI response")
 	}
 
 	// Correct the `additional_charges` and `additional_discounts`
-	correctResponse(parsedResponse)
+	correctResponse(parsedResponse, location)
 
 	return nil
 }
 
-func correctResponse(parsedResponse *map[string]interface{}) {
+func correctResponse(parsedResponse *map[string]interface{}, location string) {
+	// Add the location to the response
+	(*parsedResponse)["location"] = location
+
 	// Ensure `additional_charges` contains only "Service Charge" and "GST"
 	chargesMap := map[string]float64{"Service Charge": 0, "GST": 0}
 	if additionalCharges, exists := (*parsedResponse)["additional_charges"].([]interface{}); exists {
