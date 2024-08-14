@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easysplit_flutter/common/models/history/history.dart';
 import 'package:easysplit_flutter/common/services/log_service.dart';
 import 'package:easysplit_flutter/common/utils/constants/constants.dart';
@@ -13,10 +14,12 @@ import 'package:easysplit_flutter/modules/bills/stores/receipt_store.dart';
 import 'package:easysplit_flutter/modules/bills/widgets/bill_image.dart';
 import 'package:easysplit_flutter/modules/friends/stores/friend_store.dart';
 import 'package:easysplit_flutter/modules/home/stores/history_store.dart';
+import 'package:easysplit_flutter/modules/images/pages/full_size_image_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:screenshot/screenshot.dart';
@@ -44,8 +47,35 @@ class _ShareBillPageState extends State<ShareBillPage> {
   @override
   void initState() {
     super.initState();
+    _initializeReceiptLink();
     if (widget.history != null) {
       savedImage = widget.history!.imageBlob;
+    }
+  }
+
+  Future<void> _initializeReceiptLink() async {
+    if (widget.history != null && widget.history!.location != null) {
+      final isValid = await isValidImageUrl(widget.history!.location!);
+      if (isValid) {
+        receiptStore.setReceiptLink(widget.history!.location);
+        LogService.i('Receipt link is valid, setting receipt link');
+      } else {
+        receiptStore.setReceiptLink(null);
+        LogService.i('Receipt link is invalid, setting receipt link as null');
+      }
+    } else if (widget.history != null) {
+      receiptStore.setReceiptLink(null);
+      LogService.i('Receipt link is null, setting receipt link as null');
+    }
+  }
+
+  Future<bool> isValidImageUrl(String url) async {
+    try {
+      final response = await http.head(Uri.parse(url));
+      return response.statusCode == 200 &&
+          response.headers['content-type']?.startsWith('image/') == true;
+    } catch (e) {
+      return false;
     }
   }
 
@@ -84,7 +114,7 @@ class _ShareBillPageState extends State<ShareBillPage> {
       final imageFile = File(imagePath);
       await imageFile.writeAsBytes(image);
 
-      // unresolve issue for Android: https://github.com/fluttercandies/flutter_photo_manager/issues/1007
+      // unresolved issue for Android: https://github.com/fluttercandies/flutter_photo_manager/issues/1007
       // final AssetEntity? assetEntity =
       //     await PhotoManager.editor.saveImage(image, title: 'bill_image');
       final AssetEntity? assetEntity =
@@ -126,6 +156,8 @@ class _ShareBillPageState extends State<ShareBillPage> {
             })
         .toList();
 
+    final location = receiptStore.receiptLink;
+
     await historyStore.saveHistory(
       image,
       json.encode(items),
@@ -133,6 +165,7 @@ class _ShareBillPageState extends State<ShareBillPage> {
       json.encode(additionalDiscounts),
       receiptStore.total.toDouble(),
       json.encode(selectedFriends),
+      location,
     );
   }
 
@@ -171,8 +204,9 @@ class _ShareBillPageState extends State<ShareBillPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Row(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Stack(alignment: Alignment.center, children: [
+                      Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
@@ -203,8 +237,8 @@ class _ShareBillPageState extends State<ShareBillPage> {
                                 child: IconButton(
                                   padding: const EdgeInsets.all(0),
                                   icon: SvgPicture.asset(
-                                    'assets/svg/redo_split.svg',
-                                    width: 126,
+                                    'assets/svg/edit_split.svg',
+                                    width: 77,
                                     height: 38,
                                   ),
                                   onPressed: () {
@@ -215,12 +249,57 @@ class _ShareBillPageState extends State<ShareBillPage> {
                                           widget.history!.additionalCharges),
                                       'additional_discounts': json.decode(
                                           widget.history!.additionalDiscounts),
+                                      'location': receiptStore.receiptLink
                                     });
                                     context.go('/bill');
                                   },
                                 ),
                               )
-                          ])),
+                          ]),
+                      Observer(
+                        builder: (_) {
+                          if (receiptStore.receiptLink != null) {
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 24),
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => FullSizeImagePage(
+                                          imageUrl: receiptStore.receiptLink!),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  height: 48,
+                                  width: 48,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color: Colors.white, width: 2),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(6),
+                                    child: CachedNetworkImage(
+                                      imageUrl: receiptStore.receiptLink!,
+                                      placeholder: (context, url) =>
+                                          const CircularProgressIndicator(),
+                                      errorWidget: (context, url, error) =>
+                                          const Icon(Icons.error),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          } else {
+                            return Container();
+                          }
+                        },
+                      ),
+                    ]),
+                  ),
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),

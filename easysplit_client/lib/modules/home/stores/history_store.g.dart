@@ -67,9 +67,16 @@ mixin _$HistoryStore on HistoryStoreBase, Store {
       String additionalCharges,
       String additionalDiscounts,
       double total,
-      String friendsList) {
-    return _$saveHistoryAsyncAction.run(() => super.saveHistory(imageBytes,
-        items, additionalCharges, additionalDiscounts, total, friendsList));
+      String friendsList,
+      String? location) {
+    return _$saveHistoryAsyncAction.run(() => super.saveHistory(
+        imageBytes,
+        items,
+        additionalCharges,
+        additionalDiscounts,
+        total,
+        friendsList,
+        location));
   }
 
   late final _$deleteHistoryAsyncAction =

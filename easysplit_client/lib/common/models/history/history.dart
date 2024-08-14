@@ -18,6 +18,7 @@ class History {
   final int createdAt;
   int? deletedAt;
   final String friendsList;
+  final String? location;
 
   History({
     required this.id,
@@ -29,6 +30,7 @@ class History {
     required this.createdAt,
     this.deletedAt,
     required this.friendsList,
+    this.location,
   });
 
   factory History.fromJson(Map<String, dynamic> json) =>
@@ -46,6 +48,7 @@ class History {
     int? createdAt,
     int? deletedAt,
     String? friendsList,
+    String? location,
   }) {
     return History(
       id: id ?? this.id,
@@ -57,6 +60,7 @@ class History {
       createdAt: createdAt ?? this.createdAt,
       deletedAt: deletedAt ?? this.deletedAt,
       friendsList: friendsList ?? this.friendsList,
+      location: location ?? this.location,
     );
   }
 

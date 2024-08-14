@@ -38,12 +38,14 @@ abstract class HistoryStoreBase with Store {
 
   @action
   Future<void> saveHistory(
-      Uint8List imageBytes,
-      String items,
-      String additionalCharges,
-      String additionalDiscounts,
-      double total,
-      String friendsList) async {
+    Uint8List imageBytes,
+    String items,
+    String additionalCharges,
+    String additionalDiscounts,
+    double total,
+    String friendsList,
+    String? location,
+  ) async {
     final newHistory = History(
       id: 0,
       imageBlob: imageBytes,
@@ -54,6 +56,7 @@ abstract class HistoryStoreBase with Store {
       createdAt: DateTime.now().millisecondsSinceEpoch,
       deletedAt: null,
       friendsList: friendsList,
+      location: location,
     );
     LogService.i('Saving a new history');
     await _historyRepository.addHistory(newHistory);

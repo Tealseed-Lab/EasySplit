@@ -41,8 +41,9 @@ class BillImage extends StatelessWidget {
             final noAssignee = receiptStore.itemAssignments[index] == null ||
                 receiptStore.itemAssignments[index]!.isEmpty;
             final allSelectedFriendsAssigned =
-                receiptStore.itemAssignments[index]?.length ==
-                    friendStore.selectedFriendsCount;
+                friendStore.selectedFriendsCount > 0 &&
+                    receiptStore.itemAssignments[index]?.length ==
+                        friendStore.selectedFriendsCount;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

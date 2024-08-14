@@ -20,7 +20,8 @@ class BillImageConstants {
       {"amount": 0, "key": 1, "name": "Discount"}
     ],
     "items": [],
-    "total": 0
+    "total": 0,
+    "location": null,
   };
 
   static const TextStyle textStyle = TextStyle(

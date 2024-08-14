@@ -36,7 +36,7 @@ class _WebViewPageState extends State<WebViewPage> {
             height: 50,
           ),
           Positioned(
-            top: 62,
+            top: 56,
             left: 16,
             child: GestureDetector(
               onTap: () {

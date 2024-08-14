@@ -34,6 +34,9 @@ abstract class ReceiptStoreBase with Store {
   num oldTotal = 0.0;
 
   @observable
+  String? receiptLink;
+
+  @observable
   ObservableMap<int, ObservableList<int>> itemAssignments =
       ObservableMap<int, ObservableList<int>>();
 
@@ -62,7 +65,9 @@ abstract class ReceiptStoreBase with Store {
   int get sharedByAllCount => items.where((item) {
         int index = items.indexOf(item);
         return item['price'] != 0 &&
-            itemAssignments[index]?.length == _friendStore.selectedFriendsCount;
+            itemAssignments[index]?.length ==
+                _friendStore.selectedFriendsCount &&
+            _friendStore.selectedFriendsCount > 0;
       }).length;
 
   @action
@@ -144,8 +149,14 @@ abstract class ReceiptStoreBase with Store {
         List<Map<String, dynamic>>.from(data['additional_charges']));
     additionalDiscounts = ObservableList.of(
         List<Map<String, dynamic>>.from(data['additional_discounts']));
+    receiptLink = data['location'];
     calculateTotal();
     itemAssignments.clear();
+  }
+
+  @action
+  void setReceiptLink(String? link) {
+    receiptLink = link;
   }
 
   @action

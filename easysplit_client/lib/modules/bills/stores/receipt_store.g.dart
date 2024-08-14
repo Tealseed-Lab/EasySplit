@@ -111,6 +111,22 @@ mixin _$ReceiptStore on ReceiptStoreBase, Store {
     });
   }
 
+  late final _$receiptLinkAtom =
+      Atom(name: 'ReceiptStoreBase.receiptLink', context: context);
+
+  @override
+  String? get receiptLink {
+    _$receiptLinkAtom.reportRead();
+    return super.receiptLink;
+  }
+
+  @override
+  set receiptLink(String? value) {
+    _$receiptLinkAtom.reportWrite(value, super.receiptLink, () {
+      super.receiptLink = value;
+    });
+  }
+
   late final _$itemAssignmentsAtom =
       Atom(name: 'ReceiptStoreBase.itemAssignments', context: context);
 
@@ -217,6 +233,17 @@ mixin _$ReceiptStore on ReceiptStoreBase, Store {
         name: 'ReceiptStoreBase.setReceiptData');
     try {
       return super.setReceiptData(data);
+    } finally {
+      _$ReceiptStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void setReceiptLink(String? link) {
+    final _$actionInfo = _$ReceiptStoreBaseActionController.startAction(
+        name: 'ReceiptStoreBase.setReceiptLink');
+    try {
+      return super.setReceiptLink(link);
     } finally {
       _$ReceiptStoreBaseActionController.endAction(_$actionInfo);
     }
@@ -373,6 +400,7 @@ additionalCharges: ${additionalCharges},
 additionalDiscounts: ${additionalDiscounts},
 total: ${total},
 oldTotal: ${oldTotal},
+receiptLink: ${receiptLink},
 itemAssignments: ${itemAssignments},
 imageWidth: ${imageWidth},
 imageHeight: ${imageHeight},

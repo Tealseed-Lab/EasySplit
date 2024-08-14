@@ -1,4 +1,5 @@
 import 'package:camera/camera.dart';
+import 'package:easysplit_flutter/common/services/interfaces/image_service.dart';
 import 'package:easysplit_flutter/common/services/log_service.dart';
 import 'package:injectable/injectable.dart';
 import 'package:mobx/mobx.dart';
@@ -10,6 +11,8 @@ part 'camera_store.g.dart';
 class CameraStore = CameraStoreBase with _$CameraStore;
 
 abstract class CameraStoreBase with Store {
+  final ImageService _imageService;
+
   @observable
   List<CameraDescription> cameras = [];
 
@@ -30,6 +33,10 @@ abstract class CameraStoreBase with Store {
 
   @observable
   bool firstTimeInitialized = false;
+
+  CameraStoreBase(
+    this._imageService,
+  );
 
   @action
   Future<void> checkPermissionsAndInitializeCamera({bool init = false}) async {
@@ -86,6 +93,27 @@ abstract class CameraStoreBase with Store {
       LogService.i("Disposing camera controller...");
       await controller?.dispose();
       isControllerDisposed = true;
+    }
+  }
+
+  @action
+  Future<XFile?> capturePhoto() async {
+    if (controller != null &&
+        controller!.value.isInitialized &&
+        !isControllerDisposed) {
+      try {
+        final XFile picture = await controller!.takePicture();
+        LogService.i("Picture captured: ${picture.path}");
+        final compressedFile =
+            await _imageService.compressAndCorrectOrientation(picture);
+        return compressedFile;
+      } catch (e) {
+        LogService.e("Error taking picture: $e");
+        return null;
+      }
+    } else {
+      LogService.e("Camera is not initialized or controller is disposed.");
+      return null;
     }
   }
 }

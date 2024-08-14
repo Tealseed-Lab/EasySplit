@@ -150,6 +150,14 @@ mixin _$CameraStore on CameraStoreBase, Store {
     return _$disposeControllerAsyncAction.run(() => super.disposeController());
   }
 
+  late final _$capturePhotoAsyncAction =
+      AsyncAction('CameraStoreBase.capturePhoto', context: context);
+
+  @override
+  Future<XFile?> capturePhoto() {
+    return _$capturePhotoAsyncAction.run(() => super.capturePhoto());
+  }
+
   @override
   String toString() {
     return '''

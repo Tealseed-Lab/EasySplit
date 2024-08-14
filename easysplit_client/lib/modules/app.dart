@@ -9,6 +9,7 @@ import 'package:easysplit_flutter/modules/bills/stores/receipt_store.dart';
 import 'package:easysplit_flutter/modules/friends/pages/friends_page.dart';
 import 'package:easysplit_flutter/modules/home/pages/home_page.dart';
 import 'package:easysplit_flutter/modules/images/pages/camera_page.dart';
+import 'package:easysplit_flutter/modules/images/pages/full_size_image_page.dart';
 import 'package:easysplit_flutter/modules/images/pages/network_error_page.dart';
 import 'package:easysplit_flutter/modules/images/pages/no_text_error_page.dart';
 import 'package:easysplit_flutter/modules/images/pages/transition_page.dart';
@@ -169,6 +170,14 @@ class App extends StatelessWidget {
               key: state.pageKey,
               child: ShareBillPage(history: history),
             );
+          },
+        ),
+        GoRoute(
+          name: 'fullSizeImage',
+          path: '/fullSizeImage',
+          builder: (context, state) {
+            final imageUrl = (state.extra as Map<String, dynamic>)['imageUrl']!;
+            return FullSizeImagePage(imageUrl: imageUrl);
           },
         ),
       ],

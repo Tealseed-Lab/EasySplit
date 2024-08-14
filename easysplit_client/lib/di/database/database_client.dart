@@ -7,7 +7,7 @@ import 'package:injectable/injectable.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-const int databaseVersion = 2;
+const int databaseVersion = 3;
 
 abstract class DatabaseClient {
   Future<Database> initDatabase();
@@ -57,6 +57,9 @@ class SqliteDatabaseClient extends DatabaseClient {
     if (oldVersion < 2) {
       batch.execute(HistoryTable.create());
       LogService.i('History table created during upgrade.');
+    } else if (oldVersion < 3) {
+      batch.execute(HistoryTable.addLocationColumn());
+      LogService.i('Location column added to history table during upgrade.');
     }
     await batch.commit();
     LogService.i('Database upgraded from version $oldVersion to $newVersion');

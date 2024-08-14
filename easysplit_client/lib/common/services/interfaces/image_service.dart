@@ -1,3 +1,5 @@
+import 'package:cross_file/cross_file.dart';
+
 enum ReceiptImageSource {
   camera,
   gallery,
@@ -16,4 +18,5 @@ class ReceiptImage {
 
 abstract class ImageService {
   Future<ReceiptImage?> pickImage(ReceiptImageSource source);
+  Future<XFile?> compressAndCorrectOrientation(XFile image);
 }

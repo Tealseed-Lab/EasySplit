@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easysplit_flutter/common/repositories/interfaces/guide_repository.dart';
 import 'package:easysplit_flutter/common/stores/guide_store.dart';
 import 'package:easysplit_flutter/common/utils/constants/constants.dart';
@@ -13,6 +14,7 @@ import 'package:easysplit_flutter/modules/friends/stores/friend_store.dart';
 import 'package:easysplit_flutter/modules/friends/utils/friend_with_bill_utils.dart';
 import 'package:easysplit_flutter/modules/friends/widgets/friend_with_bill.dart';
 import 'package:easysplit_flutter/modules/friends/widgets/pax.dart';
+import 'package:easysplit_flutter/modules/images/pages/full_size_image_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -126,6 +128,41 @@ class _BillPageState extends State<BillPage> {
                                   ? clearContentMessage
                                   : null,
                         ),
+                        if (_receiptStore.receiptLink != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 24),
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => FullSizeImagePage(
+                                        imageUrl: _receiptStore.receiptLink!),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                height: 48,
+                                width: 48,
+                                decoration: BoxDecoration(
+                                  border:
+                                      Border.all(color: Colors.white, width: 2),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: CachedNetworkImage(
+                                    imageUrl: _receiptStore.receiptLink!,
+                                    placeholder: (context, url) =>
+                                        const CircularProgressIndicator(),
+                                    errorWidget: (context, url, error) =>
+                                        const Icon(Icons.error),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                         Container(
                           padding: const EdgeInsets.only(top: 24),
                           child: IconButton(

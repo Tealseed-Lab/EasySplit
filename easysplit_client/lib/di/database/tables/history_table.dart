@@ -9,6 +9,7 @@ class HistoryTable {
   static const String columnCreatedAt = 'created_at';
   static const String columnDeletedAt = 'deleted_at';
   static const String columnFriendsList = 'friends_list';
+  static const String columnLocation = 'location';
 
   static String create() {
     return '''
@@ -21,8 +22,15 @@ class HistoryTable {
       $columnTotal REAL NOT NULL,
       $columnCreatedAt INTEGER NOT NULL,
       $columnDeletedAt INTEGER,
-      $columnFriendsList TEXT NOT NULL
+      $columnFriendsList TEXT NOT NULL,
+      $columnLocation TEXT 
     );
   ''';
+  }
+
+  static String addLocationColumn() {
+    return '''
+    ALTER TABLE $tableName ADD COLUMN $columnLocation TEXT;
+    ''';
   }
 }

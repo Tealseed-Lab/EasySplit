@@ -16,6 +16,7 @@ History _$HistoryFromJson(Map<String, dynamic> json) => History(
       createdAt: (json['created_at'] as num).toInt(),
       deletedAt: (json['deleted_at'] as num?)?.toInt(),
       friendsList: json['friends_list'] as String,
+      location: json['location'] as String?,
     );
 
 Map<String, dynamic> _$HistoryToJson(History instance) => <String, dynamic>{
@@ -28,4 +29,5 @@ Map<String, dynamic> _$HistoryToJson(History instance) => <String, dynamic>{
       'created_at': instance.createdAt,
       'deleted_at': instance.deletedAt,
       'friends_list': instance.friendsList,
+      'location': instance.location,
     };

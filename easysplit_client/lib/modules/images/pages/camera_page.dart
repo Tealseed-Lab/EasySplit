@@ -53,15 +53,14 @@ class _CameraPageState extends State<CameraPage> with WidgetsBindingObserver {
     if (_cameraStore.controller != null &&
         _cameraStore.controller!.value.isInitialized &&
         !_cameraStore.isControllerDisposed) {
-      try {
-        final XFile picture = await _cameraStore.controller!.takePicture();
-        LogService.i("Picture captured: ${picture.path}");
+      final XFile? picture = await _cameraStore.capturePhoto();
+      if (picture != null) {
         await _uploadImage(File(picture.path));
-      } catch (e) {
-        LogService.e("Error taking picture: $e");
+      } else {
+        LogService.e("Error taking picture: picture is null");
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error capturing photo: $e')),
+            const SnackBar(content: Text('Error taking picture')),
           );
         }
       }
