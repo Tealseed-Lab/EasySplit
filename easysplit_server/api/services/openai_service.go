@@ -92,7 +92,13 @@ func (s *OpenAIService) CallOpenAIAPI(sessionID string, messages []openai.ChatCo
 			Model:    utils.OpenAIModelType,
 			Messages: messages,
 			ResponseFormat: &openai.ChatCompletionResponseFormat{
-				Type: openai.ChatCompletionResponseFormatTypeJSONObject,
+				Type: openai.ChatCompletionResponseFormatTypeJSONSchema,
+				JSONSchema: &openai.ChatCompletionResponseFormatJSONSchema{
+					Name:        "ReceiptData",
+					Description: "A structured JSON output of the receipt information",
+					Schema:      utils.OpenAIReceiptJSONSchema,
+					Strict:      true,
+				},
 			},
 			TopP:        utils.OpenAIModelTopP,
 			Temperature: utils.OpenAIModelTemperature,
