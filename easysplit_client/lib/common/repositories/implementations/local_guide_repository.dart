@@ -9,9 +9,12 @@ class LocalGuideRepository extends GuideRepository {
       BehaviorSubject<GuideState>.seeded(GuideState.notViewed);
   final _splitGuideStatusStreamController =
       BehaviorSubject<GuideState>.seeded(GuideState.notViewed);
+  final _sampleHelpDismissedStreamController =
+      BehaviorSubject<bool>.seeded(false);
 
   final _homeGuideKey = 'home_guide_key';
   final _splitGuideKey = 'split_guide_key';
+  final _sampleHelpKey = 'sample_help_dismissed_key';
 
   LocalGuideRepository() {
     _loadGuideStatuses();
@@ -27,6 +30,9 @@ class LocalGuideRepository extends GuideRepository {
     final splitGuideViewed = prefs.getBool(_splitGuideKey) ?? false;
     _splitGuideStatusStreamController
         .add(splitGuideViewed ? GuideState.viewed : GuideState.notViewed);
+
+    final sampleHelpDismissed = prefs.getBool(_sampleHelpKey) ?? false;
+    _sampleHelpDismissedStreamController.add(sampleHelpDismissed);
   }
 
   @override
@@ -36,6 +42,10 @@ class LocalGuideRepository extends GuideRepository {
   @override
   Stream<GuideState> get splitGuideState =>
       _splitGuideStatusStreamController.asBroadcastStream();
+
+  @override
+  Stream<bool> get sampleHelpDismissed =>
+      _sampleHelpDismissedStreamController.asBroadcastStream();
 
   @override
   Future<void> setHomeGuideViewed() async {
@@ -49,5 +59,12 @@ class LocalGuideRepository extends GuideRepository {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_splitGuideKey, true);
     _splitGuideStatusStreamController.add(GuideState.viewed);
+  }
+
+  @override
+  Future<void> setSampleHelpDismissed() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_sampleHelpKey, true);
+    _sampleHelpDismissedStreamController.add(true);
   }
 }

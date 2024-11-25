@@ -61,12 +61,25 @@ const String shareLogsMessage = "Do you want to share the logs?";
 const String shareLogsSubject = "Logs";
 const String shareLogsText = "Here are the logs.";
 const String maximumSelectedFriendsToast =
-    "You can select a maximum of 8 people";
+    "You can select a maximum of 16 people";
 const String maximumFriendsToast = "You can add a maximum of 20 people";
 const String addFriendHint = "Add friend";
 const String historyTitle = "History";
 const String diningFriendsTitle = "Dining friends";
 const String noHistoryText = "No history yet";
+const String trySampleProcessTitle = "Try sample process";
+const String aboutEasySplitTitle = "About EasySplit";
+const String easySplitFAQTitle = "EasySplit FAQ";
+const String feedbackTitle = "Feedback";
+const String privacyPolicyTitle = "Privacy Policy";
+const String termsOfServiceTitle = "Terms of Service";
+
+// Help Texts
+const String helpCardTitle = "Not sure how to Split?";
+const String helpCardDesc1 = "No worries. ";
+const String helpCardDesc2 = "Tap here";
+const String helpCardDesc3 = " to try a sample process.😊";
+const String selectSampleReceiptTitle = "Select a receipt you'd like to scan";
 
 // Processing Texts
 final List<String> processingTexts = [

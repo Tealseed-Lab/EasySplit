@@ -16,6 +16,9 @@ abstract class GuideStoreBase with Store {
   @observable
   GuideState splitGuideState = GuideState.notViewed;
 
+  @observable
+  bool isSampleHelpDismissed = false;
+
   GuideStoreBase(this._guideRepository) {
     _guideRepository.homeGuideState.listen((state) {
       homeGuideState = state;
@@ -23,6 +26,10 @@ abstract class GuideStoreBase with Store {
 
     _guideRepository.splitGuideState.listen((state) {
       splitGuideState = state;
+    });
+
+    _guideRepository.sampleHelpDismissed.listen((dismissed) {
+      isSampleHelpDismissed = dismissed;
     });
   }
 
@@ -34,5 +41,10 @@ abstract class GuideStoreBase with Store {
   @action
   Future<void> setSplitGuideViewed() async {
     await _guideRepository.setSplitGuideViewed();
+  }
+
+  @action
+  Future<void> dismissSampleHelp() async {
+    await _guideRepository.setSampleHelpDismissed();
   }
 }

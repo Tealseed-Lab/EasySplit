@@ -13,7 +13,7 @@ class FriendStore = FriendStoreBase with _$FriendStore;
 
 abstract class FriendStoreBase with Store {
   static const int maximumFriends = 20;
-  static const int maximumSelectedFriends = 8;
+  static const int maximumSelectedFriends = 16;
 
   final FriendsRepository _friendsRepository;
 

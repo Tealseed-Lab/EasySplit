@@ -12,13 +12,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
+import 'package:easysplit_flutter/common/widgets/buttons/circular_icon_button.dart';
 
 class TransitioningPage extends StatefulWidget {
   final String imagePath;
-  final String fromPage;
+  final String? fromPage;
 
-  const TransitioningPage(
-      {super.key, required this.imagePath, required this.fromPage});
+  const TransitioningPage({super.key, required this.imagePath, this.fromPage});
 
   @override
   State<StatefulWidget> createState() {
@@ -196,13 +196,26 @@ class _TransitioningPageState extends State<TransitioningPage>
               ),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            child: NavigationButton(
-              pageName: widget.fromPage,
-              backgroundColor: Colors.transparent,
-            ),
-          ),
+          widget.fromPage != null
+              ? Container(
+                  padding: const EdgeInsets.all(16.0),
+                  child: NavigationButton(
+                    pageName: widget.fromPage!,
+                    backgroundColor: Colors.transparent,
+                  ),
+                )
+              : IconButton(
+                  padding: const EdgeInsets.only(top: 56, left: 16),
+                  icon: CircularIconButton(
+                    iconSize: 24,
+                    backgroundSize: 48,
+                    backgroundColor: Theme.of(context).colorScheme.shadow,
+                    svgIconPath: 'assets/svg/arrow-left.svg',
+                  ),
+                  onPressed: () {
+                    context.pop();
+                  },
+                ),
         ],
       ),
     );

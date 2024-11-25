@@ -9,7 +9,7 @@ Hello and welcome to the EasySplit repository!
 
 <img src="images/preview1.png" width="170" /> <img src="images/preview2.png" width="170" /> <img src="images/preview3.png" width="170" /> <img src="images/preview4.png" width="170" />
 
-Current version on App Store: V1.2.1
+Current version on App Store: V1.4.0
 
 
 ## Get Started

@@ -232,19 +232,19 @@ class _FriendsPageState extends State<FriendsPage> with WidgetsBindingObserver {
                                         ),
                                         GestureDetector(
                                           onHorizontalDragUpdate: (details) {
-                                            if (details.primaryDelta! < -7) {
+                                            if (details.primaryDelta! < -2) {
                                               _friendStore
                                                   .setCurrentlySwipedFriendId(
                                                       friend.id);
                                             }
-                                            if (details.primaryDelta! > 7) {
+                                            if (details.primaryDelta! > 2) {
                                               _friendStore
                                                   .setCurrentlySwipedFriendId(
                                                       null);
                                             }
                                           },
                                           onHorizontalDragEnd: (details) {
-                                            if (details.primaryVelocity! > 7) {
+                                            if (details.primaryVelocity! > 2) {
                                               _friendStore
                                                   .setCurrentlySwipedFriendId(
                                                       null);

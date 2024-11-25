@@ -1,18 +1,29 @@
 import 'package:easysplit_flutter/common/utils/constants/constants.dart';
 import 'package:easysplit_flutter/di/locator.dart';
+import 'package:easysplit_flutter/modules/bills/stores/item_card_store.dart';
 import 'package:easysplit_flutter/modules/bills/stores/receipt_store.dart';
 import 'package:easysplit_flutter/modules/friends/stores/friend_store.dart';
+import 'package:easysplit_flutter/modules/friends/widgets/color_circle.dart';
 import 'package:easysplit_flutter/modules/friends/widgets/color_circle_with_minus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
 class ItemCard extends StatelessWidget {
   final Map<String, dynamic> item;
+  final double? outerPadding;
+  final double? innerPadding;
+  final bool? overlay;
 
-  ItemCard({super.key, required this.item});
+  ItemCard(
+      {super.key,
+      required this.item,
+      this.outerPadding,
+      this.innerPadding,
+      this.overlay = false});
 
   final _receiptStore = locator<ReceiptStore>();
   final _friendStore = locator<FriendStore>();
+  final _itemCardStore = locator<ItemCardStore>();
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +34,7 @@ class ItemCard extends StatelessWidget {
       builder: (_) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 4),
         child: Container(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(outerPadding ?? 16.0),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
@@ -121,15 +132,19 @@ class ItemCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Container(
-                    width: double.infinity,
-                    height: 1,
-                    color: Colors.black.withOpacity(0.06),
-                    margin: const EdgeInsets.symmetric(vertical: 7.5),
+                  SizedBox(
+                    height: 2 * (innerPadding ?? 8.0),
+                    child: Center(
+                      child: Container(
+                        width: double.infinity,
+                        height: 1,
+                        color: Colors.black.withOpacity(0.06),
+                      ),
+                    ),
                   ),
                   Wrap(
-                    spacing: 8.0,
-                    runSpacing: 8.0,
+                    spacing: innerPadding ?? 8.0,
+                    runSpacing: innerPadding ?? 8.0,
                     children: _receiptStore.itemAssignments[itemIndex] ==
                                 null ||
                             _receiptStore.itemAssignments[itemIndex]!.isEmpty
@@ -145,17 +160,51 @@ class ItemCard extends StatelessWidget {
                                   )),
                             ),
                           ]
-                        : _receiptStore.itemAssignments[itemIndex]
-                                ?.map((personId) {
-                              final friend =
-                                  _friendStore.getFriendById(personId);
-                              return ColorCircleWithMinus(
-                                friend: friend!,
-                                onTap: () => _receiptStore.removePersonFromItem(
-                                    itemIndex, personId),
-                              );
-                            }).toList() ??
-                            [],
+                        : (_receiptStore.itemAssignments[itemIndex]!.length >
+                                    8 &&
+                                !overlay!)
+                            ? [
+                                ..._receiptStore.itemAssignments[itemIndex]!
+                                    .take(7)
+                                    .map((personId) {
+                                  final friend =
+                                      _friendStore.getFriendById(personId);
+                                  return ColorCircleWithMinus(
+                                    friend: friend!,
+                                    onTap: () =>
+                                        _receiptStore.removePersonFromItem(
+                                            itemIndex, personId),
+                                  );
+                                }),
+                                GestureDetector(
+                                  onTap: () => _itemCardStore.showOverlay(item),
+                                  child: Container(
+                                    width: 42.0,
+                                    height: 42.0,
+                                    alignment: Alignment.bottomLeft,
+                                    child: ColorCircle(
+                                      size: 36,
+                                      text:
+                                          "+${_receiptStore.itemAssignments[itemIndex]!.length - 7}",
+                                      color: const Color(0xFFF4F4F4),
+                                      fontSize: 16.0,
+                                      textColor: Colors.black,
+                                      textWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ),
+                              ]
+                            : _receiptStore.itemAssignments[itemIndex]!
+                                .map((personId) {
+                                final friend =
+                                    _friendStore.getFriendById(personId);
+                                return ColorCircleWithMinus(
+                                  friend: friend!,
+                                  onTap: () =>
+                                      _receiptStore.removePersonFromItem(
+                                          itemIndex, personId),
+                                );
+                              }).toList(),
                   ),
                   if (_receiptStore.itemAssignments[itemIndex] == null ||
                       _receiptStore.itemAssignments[itemIndex]!.isEmpty)

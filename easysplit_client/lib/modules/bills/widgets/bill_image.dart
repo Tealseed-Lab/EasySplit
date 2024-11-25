@@ -106,21 +106,27 @@ class BillImage extends StatelessWidget {
                     ),
                   )
                 else
-                  Row(
-                    children: receiptStore.itemAssignments[index]
-                            ?.map<Widget>((friendId) {
-                          final friend = friendStore.getFriendById(friendId);
-                          return Container(
+                  Container(
+                    constraints: const BoxConstraints(maxWidth: 234),
+                    child: Wrap(
+                      spacing: 6.0,
+                      runSpacing: 6.0,
+                      children: receiptStore.itemAssignments[index]
+                              ?.map<Widget>((friendId) {
+                            final friend = friendStore.getFriendById(friendId);
+                            return SizedBox(
+                              width: 24,
                               height: 24,
-                              padding: const EdgeInsets.only(right: 6.0),
                               child: ColorCircle(
                                 size: 24,
                                 text: friend?.name[0] ?? '',
                                 color: friend?.color ?? Colors.grey,
                                 fontSize: 12.0,
-                              ));
-                        }).toList() ??
-                        [],
+                              ),
+                            );
+                          }).toList() ??
+                          [],
+                    ),
                   ),
                 const SizedBox(height: 16),
               ],

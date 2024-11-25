@@ -73,7 +73,26 @@ abstract class ReceiptStoreBase with Store {
   @action
   void calculateImageDimensions() {
     double bottomBillHeight = calculateBottomBillHeight();
-    double assigneeHeight = assignedItemsCount * 24 - sharedByAllCount * 2;
+    double assigneeHeight = items.fold(0.0, (previousValue, item) {
+      int index = items.indexOf(item);
+      int? assignmentLength = itemAssignments[index]?.length;
+      if (assignmentLength == null || assignmentLength == 0) {
+        return previousValue; // Skip items with no assignments
+      }
+      if (assignmentLength <= 8) {
+        // If shared by all, use 22, otherwise 24
+        return previousValue +
+            (assignmentLength == _friendStore.selectedFriendsCount
+                ? 22.0
+                : 24.0);
+      } else {
+        // If more than 8
+        return previousValue +
+            (assignmentLength == _friendStore.selectedFriendsCount
+                ? 22.0
+                : 54.0);
+      }
+    });
     double itemNamesHeight = calculateItemNamesHeight();
     double height = bottomBillHeight +
         BillImageConstants.baseHeight +

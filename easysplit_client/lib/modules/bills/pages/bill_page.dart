@@ -5,6 +5,7 @@ import 'package:easysplit_flutter/common/utils/constants/constants.dart';
 import 'package:easysplit_flutter/common/widgets/buttons/circular_icon_button.dart';
 import 'package:easysplit_flutter/common/widgets/buttons/navigation_button.dart';
 import 'package:easysplit_flutter/di/locator.dart';
+import 'package:easysplit_flutter/modules/bills/stores/item_card_store.dart';
 import 'package:easysplit_flutter/modules/bills/stores/receipt_store.dart';
 import 'package:easysplit_flutter/modules/bills/widgets/add_item_placeholder.dart';
 import 'package:easysplit_flutter/modules/bills/widgets/animated_total.dart';
@@ -37,6 +38,7 @@ class _BillPageState extends State<BillPage> {
 
   final ReceiptStore _receiptStore = locator<ReceiptStore>();
   final FriendStore _friendStore = locator<FriendStore>();
+  final ItemCardStore _itemCardStore = locator<ItemCardStore>();
 
   late ReactionDisposer _receiptDisposer;
   late ReactionDisposer _itemAssignmentsDisposer;
@@ -281,8 +283,7 @@ class _BillPageState extends State<BillPage> {
                             .toList();
                         return SingleChildScrollView(
                           child: Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                             child: Wrap(
                               spacing: space,
                               runSpacing: space,
@@ -319,6 +320,34 @@ class _BillPageState extends State<BillPage> {
                 ],
               ),
             ),
+          ),
+          Observer(
+            builder: (_) {
+              if (_itemCardStore.isOverlayVisible) {
+                return GestureDetector(
+                  onTap: () => _itemCardStore.hideOverlay(),
+                  child: Container(
+                    color: Colors.black.withOpacity(0.8),
+                    child: Center(
+                      child: GestureDetector(
+                        onTap: () {},
+                        child: SizedBox(
+                          width: 274,
+                          height: 428,
+                          child: ItemCard(
+                            item: _itemCardStore.selectedItem!,
+                            outerPadding: 24.0,
+                            innerPadding: 16.0,
+                            overlay: true,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }
+              return Container();
+            },
           ),
           Observer(
             builder: (_) {

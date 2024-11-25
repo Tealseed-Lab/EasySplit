@@ -5,14 +5,17 @@ class ColorCircle extends StatelessWidget {
   final String? text;
   final Color color;
   final double? fontSize;
+  final Color? textColor;
+  final FontWeight? textWeight;
 
-  const ColorCircle({
-    super.key,
-    required this.size,
-    this.text,
-    required this.color,
-    this.fontSize,
-  });
+  const ColorCircle(
+      {super.key,
+      required this.size,
+      this.text,
+      required this.color,
+      this.fontSize,
+      this.textColor,
+      this.textWeight});
 
   @override
   Widget build(BuildContext context) {
@@ -27,8 +30,8 @@ class ColorCircle extends StatelessWidget {
         child: Text(
           text ?? "",
           style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
+            color: textColor ?? Colors.white,
+            fontWeight: textWeight ?? FontWeight.w600,
             fontSize: fontSize ?? size / 12,
             decoration: TextDecoration.none,
           ),

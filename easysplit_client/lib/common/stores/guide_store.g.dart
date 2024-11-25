@@ -41,6 +41,23 @@ mixin _$GuideStore on GuideStoreBase, Store {
     });
   }
 
+  late final _$isSampleHelpDismissedAtom =
+      Atom(name: 'GuideStoreBase.isSampleHelpDismissed', context: context);
+
+  @override
+  bool get isSampleHelpDismissed {
+    _$isSampleHelpDismissedAtom.reportRead();
+    return super.isSampleHelpDismissed;
+  }
+
+  @override
+  set isSampleHelpDismissed(bool value) {
+    _$isSampleHelpDismissedAtom.reportWrite(value, super.isSampleHelpDismissed,
+        () {
+      super.isSampleHelpDismissed = value;
+    });
+  }
+
   late final _$setHomeGuideViewedAsyncAction =
       AsyncAction('GuideStoreBase.setHomeGuideViewed', context: context);
 
@@ -59,11 +76,20 @@ mixin _$GuideStore on GuideStoreBase, Store {
         .run(() => super.setSplitGuideViewed());
   }
 
+  late final _$dismissSampleHelpAsyncAction =
+      AsyncAction('GuideStoreBase.dismissSampleHelp', context: context);
+
+  @override
+  Future<void> dismissSampleHelp() {
+    return _$dismissSampleHelpAsyncAction.run(() => super.dismissSampleHelp());
+  }
+
   @override
   String toString() {
     return '''
 homeGuideState: ${homeGuideState},
-splitGuideState: ${splitGuideState}
+splitGuideState: ${splitGuideState},
+isSampleHelpDismissed: ${isSampleHelpDismissed}
     ''';
   }
 }

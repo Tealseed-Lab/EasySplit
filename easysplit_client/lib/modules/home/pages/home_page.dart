@@ -17,6 +17,7 @@ import 'package:easysplit_flutter/modules/bills/stores/receipt_store.dart';
 import 'package:easysplit_flutter/modules/friends/stores/friend_store.dart';
 import 'package:easysplit_flutter/modules/friends/widgets/color_circle.dart';
 import 'package:easysplit_flutter/modules/home/stores/history_store.dart';
+import 'package:easysplit_flutter/modules/sample/widgets/sample_help_card.dart';
 import 'package:easysplit_flutter/modules/images/stores/image_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -197,23 +198,63 @@ class _HomePageState extends State<HomePage> {
                                       const SizedBox(height: 8),
                                       Row(
                                         children: [
-                                          for (var friend in json
-                                              .decode(lastHistory.friendsList))
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                  right: 4.0),
-                                              child: ColorCircle(
-                                                size: 24,
-                                                text: (friend['name'] as String)
-                                                    .substring(0, 1),
-                                                color: Color(int.parse(
-                                                    friend['color'],
-                                                    radix: 16)),
-                                                fontSize: 12,
+                                          for (int i = 0;
+                                              i <
+                                                  (json.decode(lastHistory
+                                                          .friendsList) as List)
+                                                      .length;
+                                              i++)
+                                            if (i <
+                                                7) // Show the first 7 friends
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    right: 4.0),
+                                                child: ColorCircle(
+                                                  size: 24,
+                                                  text: (json.decode(lastHistory
+                                                              .friendsList)[i]
+                                                          ['name'] as String)
+                                                      .substring(0, 1),
+                                                  color: Color(int.parse(
+                                                      json.decode(lastHistory
+                                                              .friendsList)[i]
+                                                          ['color'],
+                                                      radix: 16)),
+                                                  fontSize: 12,
+                                                ),
                                               ),
+                                          if ((json.decode(lastHistory
+                                                      .friendsList) as List)
+                                                  .length ==
+                                              8)
+                                            ColorCircle(
+                                              size: 24,
+                                              text: (json.decode(lastHistory
+                                                          .friendsList)[7]
+                                                      ['name'] as String)
+                                                  .substring(0, 1),
+                                              color: Color(int.parse(
+                                                  json.decode(lastHistory
+                                                      .friendsList)[7]['color'],
+                                                  radix: 16)),
+                                              fontSize: 12,
+                                            )
+                                          else if ((json.decode(lastHistory
+                                                      .friendsList) as List)
+                                                  .length >
+                                              8)
+                                            ColorCircle(
+                                              size: 24,
+                                              text:
+                                                  '+${(json.decode(lastHistory.friendsList) as List).length - 7}',
+                                              color: const Color.fromRGBO(
+                                                  255, 255, 255, 1),
+                                              fontSize: 12,
+                                              textColor: Colors.black,
+                                              textWeight: FontWeight.w400,
                                             ),
                                         ],
-                                      ),
+                                      )
                                     ],
                                   ),
                                 ],
@@ -293,6 +334,15 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 16),
+                if (MediaQuery.of(context).size.height > 670)
+                  Observer(
+                    builder: (_) {
+                      return _guideStore.isSampleHelpDismissed
+                          ? Container()
+                          : const SampleHelpCard();
+                    },
+                  ),
                 Expanded(
                   child: Align(
                     alignment: Alignment.bottomCenter,
