@@ -193,4 +193,5 @@ You're also welcomed to contact me at jiatong@tealseed.com!
 Thank you for exploring EasySplit!
 
 ## 🌟 Star History
+
 [![Star History Chart](https://api.star-history.com/svg?repos=Tealseed-Lab/easysplit&type=Date)](https://star-history.com/#Tealseed-Lab/easysplit&Date)
